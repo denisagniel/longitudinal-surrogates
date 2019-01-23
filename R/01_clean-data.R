@@ -36,6 +36,7 @@ dpp_lp_long <- dpp_lp_long_t %>%
     dpp_lp %>%
       transmute(release_id, 
                 id = as.numeric(as.factor(release_id)),
+                a,
              y = glucose_2yr_value,
              y_diff = glucose_2yr_value - glucose_baseline_value)
 ) %>%
