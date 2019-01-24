@@ -1,7 +1,7 @@
 DPP data analysis
 ================
 Denis Agniel
-Thu Jan 24 12:05:41 2019
+Thu Jan 24 12:12:02 2019
 
 ``` r
 library(lsa)
@@ -77,28 +77,6 @@ ggplot(smoothed_dpp, aes(x = tt, y = x, group = id)) +
 obs_lin_res <-
   fit_linear_model(y_t = y_t, y_c = y_c, X_t = trt_xhat_wide, X_c = ctrl_xhat_wide) %>%
   mutate(setting = 'obs_linear')
-```
-
-    ## Called from: fit_linear_model(y_t = y_t, y_c = y_c, X_t = trt_xhat_wide, X_c = ctrl_xhat_wide)
-    ## debug at /Users/dagniel/Projects/lsa/R/fit_functional_models.R#3: n_t <- length(y_t)
-    ## debug at /Users/dagniel/Projects/lsa/R/fit_functional_models.R#4: n_c <- length(y_c)
-    ## debug at /Users/dagniel/Projects/lsa/R/fit_functional_models.R#5: fit_t <- pfr(y_t ~ lf(X_t, k = 30, bs = "ps"))
-    ## debug at /Users/dagniel/Projects/lsa/R/fit_functional_models.R#6: fit_c <- pfr(y_c ~ lf(X_c, k = 30, bs = "ps"))
-    ## debug at /Users/dagniel/Projects/lsa/R/fit_functional_models.R#12: Xbar_t <- colMeans(X_t) %>% matrix(1, ncol(X_t))
-    ## debug at /Users/dagniel/Projects/lsa/R/fit_functional_models.R#13: predict_yhat_tc <- predict(fit_c, newdata = list(X_c = Xbar_t), 
-    ##     type = "response", se.fit = TRUE)
-    ## debug at /Users/dagniel/Projects/lsa/R/fit_functional_models.R#15: Xbar_c <- colMeans(X_c) %>% matrix(1, ncol(X_c))
-    ## debug at /Users/dagniel/Projects/lsa/R/fit_functional_models.R#16: predict_yhat_ct <- predict(fit_t, newdata = list(X_t = Xbar_c), 
-    ##     type = "response", se.fit = TRUE)
-    ## debug at /Users/dagniel/Projects/lsa/R/fit_functional_models.R#18: data.frame(type = c("mu_t", "mu_c", "mu_st", "mu_sc", "delta", 
-    ##     "delta_s", "R"), est = c(mean(y_t), mean(y_c), predict_yhat_ct$fit, 
-    ##     predict_yhat_tc$fit, mean(y_t) - mean(y_c), mean(y_t) - predict_yhat_ct$fit, 
-    ##     1 - (mean(y_t) - predict_yhat_ct$fit)/(mean(y_t) - mean(y_c))), 
-    ##     se = c(sd(y_t)/sqrt(n_t), sd(y_c)/sqrt(n_c), predict_yhat_ct$se.fit, 
-    ##         predict_yhat_tc$se.fit, sqrt(var(y_t)/n_t + var(y_c)/n_c), 
-    ##         NA, NA))
-
-``` r
 obs_lin_res
 ```
 
@@ -118,11 +96,14 @@ obs_fgam_res <-
 obs_fgam_res
 ```
 
-    ##    type      est         se  setting
-    ## 1  mu_t 102.7803  0.4464607 obs_fgam
-    ## 2  mu_c 105.8801  0.4434114 obs_fgam
-    ## 3 mu_st 108.8288  3.8295274 obs_fgam
-    ## 4 mu_sc 109.5746 18.3392316 obs_fgam
+    ##      type         est         se  setting
+    ## 1    mu_t 102.7802691  0.4464607 obs_fgam
+    ## 2    mu_c 105.8801020  0.4434114 obs_fgam
+    ## 3   mu_st 108.8287826  3.8295274 obs_fgam
+    ## 4   mu_sc 109.5746105 18.3392316 obs_fgam
+    ## 5   delta  -3.0998330  0.6292383 obs_fgam
+    ## 6 delta_s  -6.0485135         NA obs_fgam
+    ## 7       R  -0.9512385         NA obs_fgam
 
 ``` r
 obs_kernel_res <-
@@ -131,8 +112,11 @@ obs_kernel_res <-
 obs_kernel_res
 ```
 
-    ##    type      est        se    setting
-    ## 1  mu_t 102.7803 0.4464607 obs_kernel
-    ## 2  mu_c 105.8801 0.4434114 obs_kernel
-    ## 3 mu_st      NaN       NaN obs_kernel
-    ## 4 mu_sc      NaN       NaN obs_kernel
+    ##      type        est        se    setting
+    ## 1    mu_t 102.780269 0.4464607 obs_kernel
+    ## 2    mu_c 105.880102 0.4434114 obs_kernel
+    ## 3   mu_st        NaN       NaN obs_kernel
+    ## 4   mu_sc        NaN       NaN obs_kernel
+    ## 5   delta  -3.099833 0.6292383 obs_kernel
+    ## 6 delta_s        NaN        NA obs_kernel
+    ## 7       R        NaN        NA obs_kernel
