@@ -39,7 +39,9 @@ col_types = cols(
   randomization_date = col_character(),
   pt_id = col_character(),
   race_eth = col_character(),
-  site = col_character()
+  site = col_character(),
+  screening_cd4 = col_number(),
+  avg_cd4 = col_number()
 ))
 
 cd_data <- read_csv(
@@ -91,7 +93,8 @@ full_cohort <- bl %>%
 #' Make exclusions.
 
 study_cohort <- full_cohort %>%
-  filter(exclude == 'N')
+  filter(exclude == 'N',
+         !is.na(avg_cd4))
 study_cohort %>%
   count(trt)
 
@@ -137,8 +140,11 @@ outcome_range <- comparison_data %>%
 
 outcome_data <- outcome_range %>%
   group_by(pt_id) %>%
-  summarise(outcome_cd4 = mean(cd4),
+  summarise(yr2_cd4 = mean(cd4),
+            cd4_diff = mean(cd4 - avg_cd4),
             n_outcome_cd4 = n())
+
+#' Now let's find a baseline cd4 for each individual.
 
 #' Merge it back in and only use cd4 measurements between -14 days and 365 days after start date.
 #' 
@@ -160,5 +166,12 @@ ggplot(analysis_data, aes(x = t, y = cd4, color = trt)) +
   theme_bw()
 
 #' We now have `r nrow(analysis_data)` total observations on `r length(unique(analysis_data$pt_id))` patients.
+
+clean_data <- analysis_data %>%
+  transmute(id = pt_id,
+            a = if_else(trt == 'B', 1, 0),
+            tt = as.numeric(t),
+            x = cd4,
+            y = cd4_diff)
 write_csv(analysis_data,
           here('data/hiv-analysis-data.csv'))
