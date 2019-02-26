@@ -1,7 +1,7 @@
 ACTG 175 data cleaning
 ================
 dagniel
-Tue Feb 26 12:47:20 2019
+Tue Feb 26 12:48:30 2019
 
 ``` r
 library(knitr)
