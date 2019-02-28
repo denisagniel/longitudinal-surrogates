@@ -98,30 +98,31 @@ lsa_sim <- function(n, n_i, w, m, B) {
 
 
 sim_parameters <- expand.grid(
-  run = 1:10,
+  run = 1:3,
   n = c(50, 100, 250),
   n_i = c(3, 10),
-  m = c('linear', 'nl'),
+  m = c('nl'),
   w = 1,
   B = 250
 ) 
 
+options(
+  clustermq.defaults = 
+    list(ptn="short",
+         time_amt = "12:00:00",
+         log_file="log%a.log"
+         )
+)
 sim_res <- Q(lsa_sim, 
              n = sim_parameters$n,
              n_i = sim_parameters$n_i,
              m = sim_parameters$m,
              w = sim_parameters$w,
              B = sim_parameters$B,
-             const = list(
-               ate_list = list(
-                 ipw2_ate,
-                 regr_ate,
-                 dr_ate,
-                 strat_ate),
-               B = 200,
-               d = dd),
-             n_jobs = 10,
+             const = list(),
+             n_jobs = 18,
              memory = 8000,
              fail_on_error = FALSE
 )
 
+sessionInfo()
