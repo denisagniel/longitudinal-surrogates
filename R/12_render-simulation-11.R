@@ -1,6 +1,6 @@
 library(here)
 options(
-  clustermq.defaults = list(ptn="medium",
+  clustermq.defaults = list(ptn="short",
                             log_file="Rout/log%a.log",
                             time_amt = "12:00:00"
   )
