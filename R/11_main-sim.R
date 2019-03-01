@@ -7,8 +7,6 @@ library(knitr)
 opts_chunk$set(warning = FALSE, message = FALSE, cache = FALSE, fig.width = 7, fig.height = 7)
 
 #'
-
-# devtools::install_github('denisagniel/synthate')
 library(dplyr)
 library(clustermq)
 library(here)
@@ -98,7 +96,7 @@ lsa_sim <- function(n, n_i, w, m, B) {
 
 
 sim_parameters <- expand.grid(
-  run = 1:3,
+  run = 1:1000,
   n = c(50, 100, 250),
   n_i = c(3, 10),
   m = c('nl'),
@@ -106,13 +104,6 @@ sim_parameters <- expand.grid(
   B = 250
 ) 
 
-options(
-  clustermq.defaults = 
-    list(ptn="short",
-         time_amt = "12:00:00",
-         log_file="log%a.log"
-         )
-)
 sim_res <- Q(lsa_sim, 
              n = sim_parameters$n,
              n_i = sim_parameters$n_i,
@@ -120,9 +111,14 @@ sim_res <- Q(lsa_sim,
              w = sim_parameters$w,
              B = sim_parameters$B,
              const = list(),
-             n_jobs = 18,
+             n_jobs = 500,
              memory = 8000,
              fail_on_error = FALSE
 )
+saveRDS(sim_res, 
+        here('results/all_sims.rds'))
+sim_ds <- bind_rows(sim_res)
+write_csv(sim_ds,
+          here('results/all_sims.csv'))
 
 sessionInfo()
