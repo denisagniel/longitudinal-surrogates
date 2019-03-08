@@ -17,7 +17,7 @@ library(ggplot2)
 remotes::install_github('denisagniel/longsurr')
 
 
-
+fs::dir_create(here('results'))
 
 lsa_sim <- function(n, n_i, w, m, B) {
 
@@ -83,7 +83,7 @@ lsa_sim <- function(n, n_i, w, m, B) {
     })
     
     boot_ests <- bind_rows(boot_list, .id = 'boot')
-    browser()
+    # browser()
     
     boot_vars <- boot_ests %>%
       group_by(type, setting) %>%
@@ -114,7 +114,7 @@ lsa_sim <- function(n, n_i, w, m, B) {
   
 }
 
-lsa_sim(n = 50, n_i = 3, m = 'nl', w = 1, B = 20)
+# lsa_sim(n = 50, n_i = 3, m = 'nl', w = 1, B = 20)
 
 sim_parameters <- expand.grid(
   run = 1:500,
