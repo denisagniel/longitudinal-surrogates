@@ -14,12 +14,13 @@ library(purrr)
 library(readr)
 library(glue)
 library(ggplot2)
-
+remotes::install_github('denisagniel/longsurr')
 
 
 
 
 lsa_sim <- function(n, n_i, w, m, B) {
+
   library(dplyr)
   library(here)
   library(purrr) 
@@ -33,7 +34,9 @@ lsa_sim <- function(n, n_i, w, m, B) {
   library(tidyr)
   library(fda.usc)
   select <- dplyr::select
-  
+
+  print(glue('This is a sim for sample size {n}, number of observations {n_i}, w {w}, under model {m}, using {B} bootstrap samples.'))
+    
   c(y_t, y_c, X_t, X_c, X_err_t, X_err_c, full_data, obs_data, 
     y_c_on_t, y_t_on_c, Xi_c, Xi_t) %<-%
     generate_data(n = n, n_i = n_i, Cx_0, Cx_1, w = w, sx = 0.1, 
@@ -80,29 +83,47 @@ lsa_sim <- function(n, n_i, w, m, B) {
     })
     
     boot_ests <- bind_rows(boot_list, .id = 'boot')
+    browser()
+    
     boot_vars <- boot_ests %>%
       group_by(type, setting) %>%
-      summarise(boot_var = var(est),
+      summarise(boot_var = var(est, na.rm = TRUE),
                 low_q = quantile(est, 0.025, na.rm = TRUE),
                 high_q = quantile(est, 0.975, na.rm = TRUE))
+    boot_wide <- boot_ests %>%
+      select(type, est, setting, boot) %>%
+      spread(type, est)
+    boot_sigma <- boot_wide %>%
+      group_by(setting) %>%
+      summarise(var_delta = var(delta, na.rm = TRUE),
+                var_delta_s = var(delta_s, na.rm = TRUE),
+                cov_dd = cov(delta, delta_s, use = 'p'))
+    c_ds <- boot_wide %>%
+      inner_join(boot_sigma) %>%
+      mutate(c_alpha = (delta_s - (1-R)*delta)^2 /
+               (var_delta - 2*(1-R)*cov_dd + (1-R)^2*var_delta_s))
+    
+    
     full_res <- full_join(oracle_ests,
                           obs_ests) %>%
       full_join(boot_vars)
   } else full_res <- full_join(oracle_ests,
                                obs_ests)
+  saveRDS(full_res, here('results/scratch_res.rds'))
   full_res
   
 }
 
+lsa_sim(n = 50, n_i = 3, m = 'nl', w = 1, B = 20)
 
 sim_parameters <- expand.grid(
-  run = 1:1000,
+  run = 1:500,
   n = c(50, 100, 250),
   n_i = c(3, 10),
   m = c('nl'),
   w = 1,
   B = 250
-) 
+)
 
 sim_res <- Q(lsa_sim, 
              n = sim_parameters$n,
