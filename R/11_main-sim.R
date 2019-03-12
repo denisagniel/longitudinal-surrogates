@@ -19,7 +19,7 @@ remotes::install_github('denisagniel/longsurr')
 
 fs::dir_create(here('results'))
 
-lsa_sim <- function(n, n_i, w, m, B) {
+lsa_sim <- function(n, n_i, w, m, B, run) {
 
   library(dplyr)
   library(here)
@@ -35,7 +35,7 @@ lsa_sim <- function(n, n_i, w, m, B) {
   library(fda.usc)
   select <- dplyr::select
 
-  print(glue('This is a sim for sample size {n}, number of observations {n_i}, w {w}, under model {m}, using {B} bootstrap samples.'))
+  print(glue('This is sim {run} for sample size {n}, number of observations {n_i}, w {w}, under model {m}, using {B} bootstrap samples.'))
     
   c(y_t, y_c, X_t, X_c, X_err_t, X_err_c, full_data, obs_data, 
     y_c_on_t, y_t_on_c, Xi_c, Xi_t) %<-%
@@ -131,6 +131,7 @@ sim_res <- Q(lsa_sim,
              m = sim_parameters$m,
              w = sim_parameters$w,
              B = sim_parameters$B,
+             run = sim_parameters$run,
              const = list(),
              n_jobs = 500,
              memory = 8000,
