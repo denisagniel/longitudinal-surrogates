@@ -18,6 +18,7 @@ remotes::install_github('denisagniel/longsurr')
 
 
 fs::dir_create(here('results'))
+fs::dir_create(here('results/tmp'))
 
 lsa_sim <- function(n, n_i, w, m, B, run) {
 
@@ -109,7 +110,9 @@ lsa_sim <- function(n, n_i, w, m, B, run) {
       full_join(boot_vars)
   } else full_res <- full_join(oracle_ests,
                                obs_ests)
-  saveRDS(full_res, here('results/scratch_res.rds'))
+  saveRDS(full_res, here(
+    glue('results/tmp/res_n{n}_ni{n_i}_w{w}_m{m}_B{B}_{run}.rds'))
+  )
   full_res
   
 }
@@ -142,5 +145,6 @@ saveRDS(sim_res,
 sim_ds <- bind_rows(sim_res)
 write_csv(sim_ds,
           here('results/all_sims.csv'))
+fs::dir_delete(here('results/tmp'))
 
 sessionInfo()
