@@ -37,46 +37,6 @@
 \usepackage{booktabs}
 %% \raggedbottom % To avoid glue in typesetteing, sbs>>
 
-\usepackage{color}
-\usepackage{fancyvrb}
-\newcommand{\VerbBar}{|}
-\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
-% Add ',fontsize=\small' for more characters per line
-\usepackage{framed}
-\definecolor{shadecolor}{RGB}{248,248,248}
-\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
-\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
-\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
-\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
-\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
-\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
-\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
-\newcommand{\ImportTok}[1]{#1}
-\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
-\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
-\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
-\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
-\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
-\newcommand{\BuiltInTok}[1]{#1}
-\newcommand{\ExtensionTok}[1]{#1}
-\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
-\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
-\newcommand{\RegionMarkerTok}[1]{#1}
-\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
-\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
-\newcommand{\NormalTok}[1]{#1}
 
 % tightlist command for lists without linebreak
 \providecommand{\tightlist}{%
@@ -130,6 +90,8 @@ longitudinal data; surrogate markers; nonparametric analysis.
 
 \section{Method}\label{sec:1}
 
+\subsection{Setup and notation}\label{setup-and-notation}
+
 Let the data for analysis consist of \(n\) independent observations of
 the form \((Y_i, \bX_i, A_i)_{i=1, ..., n}\), \(A_i\) represents an
 indicator for treatment or intervention,
@@ -152,6 +114,9 @@ in treatment group \(j\) where \(f_j(y|\bx)\) is the density of \(Y\)
 conditional on \(\bX = \bx\) and \(g_j(\bx)\) is the density function
 for \(\bX_i\) in group \(D = j\).
 
+\subsection{Estimating treatment effects and
+surrogacy}\label{estimating-treatment-effects-and-surrogacy}
+
 We are interested in estimating the proportion of treatment effect on
 the primary outcome that is explained by the longitudinal surrogate
 marker. We define the overall treatment effect, \(\Delta\), as the
@@ -161,8 +126,13 @@ observed data to estimate \(\Delta\)
 \[E[Y | A = 1] - E[Y | A = 0] = \int y f_0(y|\bx)g_0(\bx)dyd\bx - \int y f_1(y|\bx)g_1(\bx)dyd\bx.\]
 We aim to measure the surrogate value of \(\bX\) comparing \(\Delta\) to
 the residual treatment effect that would be observed if the \(\bX\) was
-distributed the same in both groups. In the context of a scalar \(X\),
-the residual treatment effect can be defined as
+distributed the same in both groups. The residual treatment effect can
+be estimated as
+
+\begin{align*}
+\Delta_S &= \int E[Y | A = 1, \bX = \bx]g_0(\bx)d\bx - \int E[Y | A = 0, \bX = \bx]g_0(\bx)d\bx \\
+&= \int y f_1(y|\bx)g_0(\bx)dyd\bx - \int y f_0(y|\bx)g_0(\bx)dyd\bx, \label{residual_effect}.
+\end{align*}
 
 \section{Simulation studies}\label{sec:2}
 
@@ -170,73 +140,6 @@ the residual treatment effect can be defined as
 surrogacy}\label{analysis-of-longitudinal-cd4-count-surrogacy}
 
 \section{Discussion}\label{discussion}
-
-\section{Figures and tables}\label{figures-and-tables}
-
-\subsection{Figures coming from R}\label{figures-coming-from-r}
-
-\paragraph{Normal figure embedded in
-text}\label{normal-figure-embedded-in-text}
-
-\begin{verbatim}
-## Warning in plot.formula(runif(25) ~ runif(25)): the formula 'runif(25) ~
-## runif(25)' is treated as 'runif(25) ~ 1'
-\end{verbatim}
-
-\begin{figure}
-\centering
-\includegraphics{longitudinal-surrogate-marker-manuscript_files/figure-latex/fig2-1.pdf}
-\caption{Output from \texttt{pdf()}}
-\end{figure}
-
-\clearpage
-
-\subsection{Tables coming from R}\label{tables-coming-from-r}
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{print}\NormalTok{(xtable}\OperatorTok{::}\KeywordTok{xtable}\NormalTok{(}\KeywordTok{head}\NormalTok{(mtcars)[,}\DecValTok{1}\OperatorTok{:}\DecValTok{4}\NormalTok{], }
-\DataTypeTok{caption =} \StringTok{"Caption centered under table"}\NormalTok{, }\DataTypeTok{label =} \StringTok{"tab1"}\NormalTok{), }
-\DataTypeTok{comment =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{timestamp =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{caption.placement =} \StringTok{"top"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{table}[ht]
-\centering
-\caption{Caption centered under table} 
-\label{tab1}
-\begin{tabular}{rrrrr}
-  \hline
- & mpg & cyl & disp & hp \\ 
-  \hline
-Mazda RX4 & 21.00 & 6.00 & 160.00 & 110.00 \\ 
-  Mazda RX4 Wag & 21.00 & 6.00 & 160.00 & 110.00 \\ 
-  Datsun 710 & 22.80 & 4.00 & 108.00 & 93.00 \\ 
-  Hornet 4 Drive & 21.40 & 6.00 & 258.00 & 110.00 \\ 
-  Hornet Sportabout & 18.70 & 8.00 & 360.00 & 175.00 \\ 
-  Valiant & 18.10 & 6.00 & 225.00 & 105.00 \\ 
-   \hline
-\end{tabular}
-\end{table}
-
-Table \ref{tab1} shows these numbers. Some of those numbers are plotted
-in Figure \ref{fig:fig1}.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{head}\NormalTok{(mtcars[,}\DecValTok{1}\OperatorTok{:}\DecValTok{4}\NormalTok{])}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-##                    mpg cyl disp  hp
-## Mazda RX4         21.0   6  160 110
-## Mazda RX4 Wag     21.0   6  160 110
-## Datsun 710        22.8   4  108  93
-## Hornet 4 Drive    21.4   6  258 110
-## Hornet Sportabout 18.7   8  360 175
-## Valiant           18.1   6  225 105
-\end{verbatim}
 
 
 \bibliographystyle{biom}
