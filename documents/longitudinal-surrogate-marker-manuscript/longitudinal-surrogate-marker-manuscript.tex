@@ -1,0 +1,248 @@
+\documentclass[useAMS,usenatbib,referee]{biom}
+%\documentclass[useAMS,usenatbib,referee]{biom}
+%
+%
+%  Papers submitted to Biometrics should ALWAYS be prepared
+%  using the referee option!!!!
+%
+%
+% If your system does not have the AMS fonts version 2.0 installed, then
+% remove the useAMS option.
+%
+% useAMS allows you to obtain upright Greek characters.
+% e.g. \umu, \upi etc.  See the section on "Upright Greek characters" in
+% this guide for further information.
+%
+% If you are using AMS 2.0 fonts, bold math letters/symbols are available
+% at a larger range of sizes for NFSS release 1 and 2 (using \boldmath or
+% preferably \bmath).
+%
+% The usenatbib command allows the use of Patrick Daly's natbib package for
+% cross-referencing.
+%
+% If you wish to typeset the paper in Times font (if you do not have the
+% PostScript Type 1 Computer Modern fonts you will need to do this to get
+% smoother fonts in a PDF file) then uncomment the next line
+% \usepackage{Times}
+%%%%% AUTHORS - PLACE YOUR OWN MACROS HERE %%%%%
+
+\usepackage[figuresright]{rotating}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage[hyphens]{url} % not crucial - just used below for the URL
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{booktabs}
+%% \raggedbottom % To avoid glue in typesetteing, sbs>>
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+
+% tightlist command for lists without linebreak
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setcounter{footnote}{2}
+
+\title[]{Longitudinal surrogate marker analysis}
+
+\author{ Denis Agniel \email{\href{mailto:dagniel@rand.org}{\nolinkurl{dagniel@rand.org}}} \\ RAND Corporation  \and
+		 Layla Parast \email{\href{mailto:parast@rand.org}{\nolinkurl{parast@rand.org}}} \\ RAND Corporation 
+	   }
+
+\begin{document}
+
+\date{{\it Received Mar} 2019}
+
+\pagerange{\pageref{firstpage}--\pageref{lastpage}} \pubyear{2019}
+
+\volume{0}
+\artmonth{January}
+\doi{0000-0000-0000}
+
+%  This label and the label ``lastpage'' are used by the \pagerange
+%  command above to give the page range for the article
+
+\label{firstpage}
+
+%  pub the summary here
+
+\begin{abstract}
+The text of your summary. Should not exceed 225 words.
+\end{abstract}
+
+%
+%  Please place your key words in alphabetical order, separated
+%  by semicolons, with the first letter of the first word capitalized,
+%  and a period at the end of the list.
+%
+
+\begin{keywords}
+longitudinal data; surrogate markers; nonparametric analysis.
+\end{keywords}
+
+\maketitle
+
+\input{Macro} \input{GrandMacros} \def\sone{^{(1)}} \def\szero{^{(0)}}
+
+\section{Introduction}\label{intro}
+
+\section{Method}\label{sec:1}
+
+Let the data for analysis consist of \(n\) independent observations of
+the form \((Y_i, \bX_i, A_i)_{i=1, ..., n}\), \(A_i\) represents an
+indicator for treatment or intervention,
+\(\bX_i = (X_{ij})_{j=1, ... n_i}\) is a longitudinally collected
+surrogate marker, and \(Y_i\) is a primary outcome of interest, all for
+subject \(i\). We assume for simplicity of presentation that patients
+are randomly assigned at baseline to treatment or control and that \(Y\)
+is fully observed. We further assume that there exists \(X(\cdot)\) an
+underlying surrogate marker trajectory, which we only observe \(n_i\)
+times, possibly at only a few, irregularly spaced times and with error.
+
+Furthermore, let \(Y_i\sone\) and \(Y_i\szero\) denote the primary
+outcome one would observe if, possibly contrary to fact, subject \(i\)
+received treatment and control, respectively. We assume the stable unit
+treatment value assumption (SUTVA, \citet{rosenbaum1983central}).
+Similarly, let \(X_i\sone\) and \(X_i\szero\) denote the summary markers
+under treatment and control. We assume that the joint distribution of
+\(Y_i\) and \(\bX_i\) is given by \(f_j(y, \bx) = f_j(y|\bx)g_j(\bx)\)
+in treatment group \(j\) where \(f_j(y|\bx)\) is the density of \(Y\)
+conditional on \(\bX = \bx\) and \(g_j(\bx)\) is the density function
+for \(\bX_i\) in group \(D = j\).
+
+We are interested in estimating the proportion of treatment effect on
+the primary outcome that is explained by the longitudinal surrogate
+marker. We define the overall treatment effect, \(\Delta\), as the
+expected difference in \(Y\) under treatment and control,
+\[\Delta=E(Y\sone-Y\szero).\] Because of randomization, we can use the
+observed data to estimate \(\Delta\)
+\[E[Y | A = 1] - E[Y | A = 0] = \int y f_0(y|\bx)g_0(\bx)dyd\bx - \int y f_1(y|\bx)g_1(\bx)dyd\bx.\]
+We aim to measure the surrogate value of \(\bX\) comparing \(\Delta\) to
+the residual treatment effect that would be observed if the \(\bX\) was
+distributed the same in both groups. In the context of a scalar \(X\),
+the residual treatment effect can be defined as
+
+\section{Simulation studies}\label{sec:2}
+
+\section{Analysis of longitudinal CD4 count
+surrogacy}\label{analysis-of-longitudinal-cd4-count-surrogacy}
+
+\section{Discussion}\label{discussion}
+
+\section{Figures and tables}\label{figures-and-tables}
+
+\subsection{Figures coming from R}\label{figures-coming-from-r}
+
+\paragraph{Normal figure embedded in
+text}\label{normal-figure-embedded-in-text}
+
+\begin{verbatim}
+## Warning in plot.formula(runif(25) ~ runif(25)): the formula 'runif(25) ~
+## runif(25)' is treated as 'runif(25) ~ 1'
+\end{verbatim}
+
+\begin{figure}
+\centering
+\includegraphics{longitudinal-surrogate-marker-manuscript_files/figure-latex/fig2-1.pdf}
+\caption{Output from \texttt{pdf()}}
+\end{figure}
+
+\clearpage
+
+\subsection{Tables coming from R}\label{tables-coming-from-r}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{print}\NormalTok{(xtable}\OperatorTok{::}\KeywordTok{xtable}\NormalTok{(}\KeywordTok{head}\NormalTok{(mtcars)[,}\DecValTok{1}\OperatorTok{:}\DecValTok{4}\NormalTok{], }
+\DataTypeTok{caption =} \StringTok{"Caption centered under table"}\NormalTok{, }\DataTypeTok{label =} \StringTok{"tab1"}\NormalTok{), }
+\DataTypeTok{comment =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{timestamp =} \OtherTok{FALSE}\NormalTok{, }\DataTypeTok{caption.placement =} \StringTok{"top"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{table}[ht]
+\centering
+\caption{Caption centered under table} 
+\label{tab1}
+\begin{tabular}{rrrrr}
+  \hline
+ & mpg & cyl & disp & hp \\ 
+  \hline
+Mazda RX4 & 21.00 & 6.00 & 160.00 & 110.00 \\ 
+  Mazda RX4 Wag & 21.00 & 6.00 & 160.00 & 110.00 \\ 
+  Datsun 710 & 22.80 & 4.00 & 108.00 & 93.00 \\ 
+  Hornet 4 Drive & 21.40 & 6.00 & 258.00 & 110.00 \\ 
+  Hornet Sportabout & 18.70 & 8.00 & 360.00 & 175.00 \\ 
+  Valiant & 18.10 & 6.00 & 225.00 & 105.00 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+Table \ref{tab1} shows these numbers. Some of those numbers are plotted
+in Figure \ref{fig:fig1}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{head}\NormalTok{(mtcars[,}\DecValTok{1}\OperatorTok{:}\DecValTok{4}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                    mpg cyl disp  hp
+## Mazda RX4         21.0   6  160 110
+## Mazda RX4 Wag     21.0   6  160 110
+## Datsun 710        22.8   4  108  93
+## Hornet 4 Drive    21.4   6  258 110
+## Hornet Sportabout 18.7   8  360 175
+## Valiant           18.1   6  225 105
+\end{verbatim}
+
+
+\bibliographystyle{biom}
+\bibliography{bibliography.bib}
+
+
+\label{lastpage}
+
+\end{document}
