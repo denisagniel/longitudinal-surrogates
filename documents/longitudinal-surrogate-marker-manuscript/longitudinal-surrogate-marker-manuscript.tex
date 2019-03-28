@@ -112,7 +112,7 @@ under treatment and control. We assume that the joint distribution of
 \(Y_i\) and \(\bX_i\) is given by \(f_j(y, \bx) = f_j(y|\bx)g_j(\bx)\)
 in treatment group \(j\) where \(f_j(y|\bx)\) is the density of \(Y\)
 conditional on \(\bX = \bx\) and \(g_j(\bx)\) is the density function
-for \(\bX_i\) in group \(D = j\).
+for \(\bX_i\) in group \(A = j\). Let $n_j = \sumin I\{A_i = j\}$ be the number of observations in group $A = j$.
 
 \subsection{Estimating treatment effects and
 surrogacy}\label{estimating-treatment-effects-and-surrogacy}
@@ -133,6 +133,8 @@ be estimated as
 \Delta_S &= \int E[Y | A = 1, \bX = \bx]g_0(\bx)d\bx - \int E[Y | A = 0, \bX = \bx]g_0(\bx)d\bx \\
 &= \int y f_1(y|\bx)g_0(\bx)dyd\bx - \int y f_0(y|\bx)g_0(\bx)dyd\bx, \label{residual_effect}.
 \end{align*}
+
+It is straightforward to estimate $\int E[Y | A = j, \bX = \bx]g_j(\bx)d\bx$ as $n_j\inv\sumin Y_i$, without requiring a model for $E[Y | A = j, \bX = \bx]$.
 
 \section{Simulation studies}\label{sec:2}
 
