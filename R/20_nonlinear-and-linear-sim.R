@@ -12,10 +12,10 @@ tmpdir <- '/n/data1/hms/dbmi/zaklab/dma12/longitudinal-surrogates/tmp/'
 fs::dir_create(tmpdir)
 
 
-# longsurr::lsa_sim(n = 250, n_i = 10, m = 'linear', s_y = 1, s_x = 1, delta = 25, B = 0, run = 0, tmpdir)
+longsurr::lsa_sim(n = 50, n_i = 10, m = 'nonlinear', s_y = 1, s_x = 1, delta = 15, B = 0, run = 12, tmpdir)
 
 sim_parameters <- expand.grid(
-  run = 1:3,
+  run = 1:5,
   n = c(50, 250, 500, 1000),
   n_i = c(5, 10, 25),
   m = c('linear', 'nonlinear'),
@@ -43,8 +43,8 @@ sim_res <- Q(lsa_sim,
              delta = sim_parameters$delta,
              run = sim_parameters$run,
              const = list(tmpdir = tmpdir),
-             n_jobs = 10,
-             memory = 1000,
+             n_jobs = 20,
+             memory = 2000,
              fail_on_error = FALSE
 )
 saveRDS(sim_res, 
