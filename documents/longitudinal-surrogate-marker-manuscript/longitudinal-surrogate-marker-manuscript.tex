@@ -467,6 +467,31 @@ n & Type & $\widehat{\Delta}_S$ bias & $\widehat{\Delta}_S$ SE & $\widehat{R}$ b
 \end{tabular}
 \end{table}
 
+\subsection{Estimating standard errors and confidence interval coverage}
+
+We finally demonstrate the feasibility of estimating standard errors for both $\Deltahat_S$ and $\Rhat$, and we show that confidence intervals for $\Delta_S$ and $R$ have the required coverage properties, even at low sample sizes. We used 250 bootstrap samples to compute variability estimates for all proposed estimators. Throughout this section, we let $n = 50$ and $\Delta_S = 25$. 
+
+We demonstrate the performance of standard error estimates in Figure \ref{fig:se}. The figure shows the median estimated standard error over 1,000 simulations (lighter-colored bar) compared to the empirical standard error over the simulations (darker-colored bar). From the figure we see that the standard error estimates based on 250 bootstrap samples are in general conservative for the true standard error, with lighter-colored bars generally being at or above the darker-colored bars. This behavior is seen both for the oracle estimators (based on a fully observed $\bX$) and the pre-smoothed ones, though the pre-smoothed estimators tend to be more conservative. 
+
+
+\begin{figure}
+\centering
+\begin{tabular}{c}
+\includegraphics[width =\textwidth]{results/standard-error-figure.png}
+\end{tabular}\vspace{0.2in}
+\caption{Standard errors for $\Deltahat_S$ and $\Rhat$ using each of the proposed estimators and 250 bootstrap samples. Sample size was set to $n = 50$, and $\Delta_S = 25$.}\label{fig:se}
+\end{figure}
+
+We further show in Figure \ref{fig:ci} that confidence interval coverage exceeds the nominal level for 
+
+\begin{figure}
+\centering
+\begin{tabular}{c}
+\includegraphics[width =\textwidth]{results/quantile-ci-figure.png}
+\end{tabular}\vspace{0.2in}
+\caption{95\% quantile-based confidence interval coverage for $\Delta_S$ and $R$ based on the proposed estimators using 250 bootstrap samples. Sample size was set to $n = 50$, and $\Delta_S = 25$.}\label{fig:ci}
+\end{figure}
+
 
 \section{Analysis of longitudinal CD4 count
 surrogacy}\label{analysis-of-longitudinal-cd4-count-surrogacy}
