@@ -84,7 +84,7 @@ dse_pl <- ggplot(deltahat_se_sum,
   geom_col(position = 'dodge', color = 'black') +
   facet_wrap(~setting, scales = 'free', ncol = 6) +
   theme_bw() +
-  labs(x = 'Simulation setting', y = 'Standard error') +
+  labs(x = 'Estimator', y = 'Standard error') +
   scale_fill_brewer('', labels = c('Estimated', 'Empirical')) +
   ggtitle(expression(Standard~errors~'for'~hat(Delta)[S]))
 
@@ -182,9 +182,9 @@ rci_npl <- ggplot(R_ci_sum,
   scale_y_continuous(labels = scales::percent) +
   labs(x = 'Simulation setting', y = '95% normal-based confidence interval coverage')
 
-dci_qpl + rci_qpl
-ggsave(here('results/quantile-ci-figure.png'), width = 18, height = 8)
+dci_qpl + rci_qpl + plot_layout(ncol = 1)
+ggsave(here('results/quantile-ci-figure.png'), width = 12, height = 16)
 
-dse_pl + rse_pl
-ggsave(here('results/standard-error-figure.png'), width = 22, height = 8)
+dse_pl + rse_pl + plot_layout(ncol = 1)
+ggsave(here('results/standard-error-figure.png'), width = 12, height = 16)
 

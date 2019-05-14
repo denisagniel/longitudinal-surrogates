@@ -95,7 +95,7 @@ dse_pl <- ggplot(deltahat_se_sum,
   geom_col(position = 'dodge', color = 'black') +
   facet_wrap(~setting, scales = 'free', ncol = 6) +
   theme_bw() +
-  labs(x = 'Simulation setting', y = 'Standard error') +
+  labs(x = 'Estimator', y = 'Standard error') +
   scale_fill_brewer('', labels = c('Estimated', 'Empirical')) +
   ggtitle(expression(Standard~errors~'for'~hat(Delta)[S]))
 
@@ -128,13 +128,13 @@ filter(!estimator %in% c('delta_s_change', 'delta_s_mean', 'delta_s_lin', 'delta
 ```
 
     ## # A tibble: 5 x 10
-    ##   estimator    type        R    var_R     n   n_i m         s_x   s_y delta
-    ##   <chr>        <chr>   <dbl>    <dbl> <dbl> <dbl> <chr>   <dbl> <dbl> <dbl>
-    ## 1 delta_s_k    smoot…  0.162  1.61e+2    50    10 linear      1     1     5
-    ## 2 delta_s_k    oracle  0.573  3.49e+1    50    25 linear      1     1     5
-    ## 3 delta_s_kfg… oracle -0.196  5.08e-1    50    25 linear      1     1    25
-    ## 4 delta_s_klin oracle  0.384  8.27e-3    50    10 nonlin…     1     1    25
-    ## 5 delta_s_klin smoot…  0.115  3.57e-1    50    25 nonlin…     1     1     5
+    ##   estimator   type          R   var_R     n   n_i m         s_x   s_y delta
+    ##   <chr>       <chr>     <dbl>   <dbl> <dbl> <dbl> <chr>   <dbl> <dbl> <dbl>
+    ## 1 delta_s_kf… oracle  -0.0162 1.52e-1    50    25 linear      1     1    25
+    ## 2 delta_s_kl… smooth…  0.321  5.27e-1    50     5 nonlin…     1     1     5
+    ## 3 delta_s_kf… oracle   0.510  7.05e+2    50    10 linear      1     1     5
+    ## 4 delta_s_kl… oracle   0.401  4.41e-1    50    25 nonlin…     1     1     5
+    ## 5 delta_s_k   oracle  -0.125  8.92e+3    50    25 linear      1     1     5
 
 ``` r
 deltahat_ci_sum <- ci_sum %>%
@@ -203,19 +203,19 @@ rci_npl <- ggplot(R_ci_sum,
   scale_y_continuous(labels = scales::percent) +
   labs(x = 'Simulation setting', y = '95% normal-based confidence interval coverage')
 
-dci_qpl + rci_qpl
+dci_qpl + rci_qpl + plot_layout(ncol = 1)
 ```
 
 ![](33_make-se-ci-plots_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
 ``` r
-ggsave(here('results/quantile-ci-figure.png'), width = 18, height = 8)
+ggsave(here('results/quantile-ci-figure.png'), width = 12, height = 16)
 
-dse_pl + rse_pl
+dse_pl + rse_pl + plot_layout(ncol = 1)
 ```
 
 ![](33_make-se-ci-plots_files/figure-markdown_github/unnamed-chunk-7-2.png)
 
 ``` r
-ggsave(here('results/standard-error-figure.png'), width = 22, height = 8)
+ggsave(here('results/standard-error-figure.png'), width = 12, height = 16)
 ```
