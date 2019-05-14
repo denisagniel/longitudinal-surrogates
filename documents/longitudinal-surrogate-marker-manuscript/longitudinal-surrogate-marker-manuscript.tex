@@ -28,15 +28,16 @@
 
 \usepackage[figuresright]{rotating}
 \usepackage{tikz}
-\usepackage{amsmath}
+\usepackage{amsmath, amssymb}
 \usepackage[hyphens]{url} % not crucial - just used below for the URL
 \usepackage{hyperref}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{longtable}
 \usepackage{booktabs}
+\def\Fsc{{\cal F}}
+\def\Isc{{\cal I}}
 %% \raggedbottom % To avoid glue in typesetteing, sbs>>
-
 
 % tightlist command for lists without linebreak
 \providecommand{\tightlist}{%
@@ -45,7 +46,7 @@
 
 \setcounter{footnote}{2}
 
-\title[]{Longitudinal surrogate marker analysis}
+\title[]{Evaluation of longitudinal surrogate markers}
 
 \author{ Denis Agniel \email{\href{mailto:dagniel@rand.org}{\nolinkurl{dagniel@rand.org}}} \\ RAND Corporation  \and
 		 Layla Parast \email{\href{mailto:parast@rand.org}{\nolinkurl{parast@rand.org}}} \\ RAND Corporation 
@@ -85,69 +86,502 @@ longitudinal data; surrogate markers; nonparametric analysis.
 \maketitle
 
 \input{Macro} \input{GrandMacros} \def\sone{^{(1)}} \def\szero{^{(0)}}
+\def\lin{^{(\text{lin})}}
+\def\gam{^{(\text{gam})}}
+\def\k{^{(\text{kern})}}
+\def\subxo{_{\bX\sone}}
+\def\subxz{_{\bX\szero}}
+\def\mhalf{^{-\frac{1}{2}}}
+\def\sumjp{\sum_{j=1}^p}
 
 \section{Introduction}\label{intro}
+Studies examining the effectiveness of a treatment or intervention often require long follow-up of study participants. In such studies, it may be of interest to use a surrogate marker that can be measured earlier in time, or with less cost, and can be used to estimate the treatment effect, instead of using the primary outcome. The identification and use of surrogate markers to make decisions about new treatments earlier in time is a particularly timely topic, as there has been increasing pressure from patients, caregivers, and policymakers to decrease the length of time required to evaluate a treatment's effectiveness, while still ensuring the safety of the treatment \citep{cleary2018contribution,stat}. 
 
-\section{Method}\label{sec:1}
+An extensive amount of work has been done to propose and investigate statistical methods to assess the utility of surrogate markers  \citep{prentice1989surrogate,freedman1992statistical,burzykowski2005evaluation,wang2002measure,gilbert2008evaluating,parast2016robust}. Generally, these methods have focused on settings where a single potential surrogate marker, such as fasting plasma glucose in diabetes research, is measured at a single point in time e.g. 1 year after treatment initiation. However, in practice, these potential surrogate markers are often measured repeatedly over time at follow-up visits e.g. every 4-8 weeks or every 6 months. It is conceivable that there may be situations in which a single marker measurement may not be useful, but the information contained in the repeated longitudinal measurements may be useful. 
 
-\subsection{Setup and notation}\label{setup-and-notation}
+In this paper, we are specifically interested in this setting where the surrogate marker is measured repeatedly over time up to some time point, $t_0$, and the goal is to evaluate the utility of these longitudinal measurements i.e., the surrogate marker trajectory. Some previous work has explored this particular setting. Available methods proposed in this previous work tend to focus on either a meta-analytic setting (where multiple distinct studies are available for analysis) and/or a setting in which the primary outcome is a time-to-event outcome, thus allowing for the use of joint models characterizing the relationship between the longitudinal surrogate and the survival outcome \citep{renard2003validation,pryseley2010using,deslandes2007assessing,taylor2002surrogate,tsiatis1995modeling,henderson2002identification}. For example, \cite{renard2003validation} proposes trial-level and individual-level measures of surrogacy to evaluate a marker measured repeatedly over time when the primary outcome is a time-to-event outcome by specifying a joint modeling framework in a meta-analytic setting. They illustrated these measures by investigating studies that measured prostate-specific antigen (PSA) levels over time with a primary outcome of death and demonstrated how the surrogacy of this trajectory could be examined over time. Also in a meta-analytic setting though focusing on a non-survival outcome, \cite{pryseley2010using} focused on model-based estimation of the variance reduction factor which quantifies how much of the total variability in the true outcome is explained by adjusting for the treatment effects and the repeated measurements on the surrogate markers. 
 
-Let the data for analysis consist of \(n\) independent observations of
-the form \((Y_i, \bX_i, A_i)_{i=1, ..., n}\), \(A_i\) represents an
-indicator for treatment or intervention,
-\(\bX_i = (X_{ij})_{j=1, ... n_i}\) is a longitudinally collected
-surrogate marker, and \(Y_i\) is a primary outcome of interest, all for
-subject \(i\). We assume for simplicity of presentation that patients
-are randomly assigned at baseline to treatment or control and that \(Y\)
-is fully observed. We further assume that there exists \(X(\cdot)\) an
-underlying surrogate marker trajectory, which we only observe \(n_i\)
-times, possibly at only a few, irregularly spaced times and with error.
+In contrast to these available methods, we focus on evaluating surrogacy when data from only a single trial are available and estimating this quantity within a flexible-model framework such that we reduce reliance on strong parametric model assumptions. In addition, we focus on a single summary of the surrogacy, the proportion of the treatment effect explained (PTE) by the surrogate marker trajectory. This PTE quantity is an intuitive and appealing measure of surrogacy, and is commonly used in clinical practice \citep{inker2016early,agyemang2018herpes,royce2017surrogate,chen2003proportion}. 
 
-Furthermore, let \(Y_i\sone\) and \(Y_i\szero\) denote the primary
-outcome one would observe if, possibly contrary to fact, subject \(i\)
-received treatment and control, respectively. We assume the stable unit
-treatment value assumption (SUTVA, \citet{rosenbaum1983central}).
-Similarly, let \(X_i\sone\) and \(X_i\szero\) denote the summary markers
-under treatment and control. We assume that the joint distribution of
-\(Y_i\) and \(\bX_i\) is given by \(f_j(y, \bx) = f_j(y|\bx)g_j(\bx)\)
-in treatment group \(j\) where \(f_j(y|\bx)\) is the density of \(Y\)
-conditional on \(\bX = \bx\) and \(g_j(\bx)\) is the density function
-for \(\bX_i\) in group \(A = j\). Let $n_j = \sumin I\{A_i = j\}$ be the number of observations in group $A = j$.
+In this paper, we propose a definition of the proportion of treatment effect explained by a surrogate marker trajectory and propose three novel flexible methods to estimate this defined quantity. We illustrate our proposed procedures using a simulation study and apply them to examine a trajectory of CD4 counts in an AIDS clinical trial.
 
-\subsection{Estimating treatment effects and
-surrogacy}\label{estimating-treatment-effects-and-surrogacy}
+\section{Setting, Notation, and Definitions}\label{sec:1}
 
-We are interested in estimating the proportion of treatment effect on
-the primary outcome that is explained by the longitudinal surrogate
-marker. We define the overall treatment effect, \(\Delta\), as the
+Let $A$ be the binary treatment indicator with $A=1$ for treatment and $A=0$ for control such that study participants are randomly assigned to treatment or control at baseline.  Let $Y$ and $\bX$ denote the primary outcome measured at some time $t$ and the surrogate marker measurements up to some time $t_0$ such that $t_0 \leq t$, respectively. Ideally, $Y$ is used to estimate and test for a treatment effect, but there is interest in evaluating $\bX$ as a surrogate marker because either $Y$ is more expensive or invasive to obtain than $\bX$, or $\bX$ can be fully measured earlier than $Y$, i.e. $t_0 < t$. Using potential outcomes notation, let $Y^{(a)}$ and $\bX^{(a)}$ denote the primary outcome and surrogate marker measurements under treatment $A = a$. In reality, we only observe $(Y, \bX)=(Y^{(1)}, \bX^{(1)})$ or $(Y^{(0)}, \bX^{(0)})$ depending on whether $A=1$ or $0.$ Throughout, we assume the stable unit treatment value assumption (SUTVA, \citet{rosenbaum1983central}) and assume that $\bX^{(0)} = (X\szero_j)_{j=1,...,p} = \{X\szero(t_1), ..., X\szero(t_T)\}$ and $\bX^{(1)} = (X\sone_j)_{j=1,...,p} \{X\sone(t_1), ..., X\sone(t_T)\}$ are $p-$dimensional realizations of real-valued functions on a finite interval such that $t_j \in \Isc \subset \mathbb{R}, j = 1, ..., p.$ In many situations, we may only observe the surrogate $\bX_i$ \(n_i\)
+times, possibly at only a few, irregularly spaced times and with error. We discuss complications and strategies for this setting in section \ref{smoothing}.
+
+
+The treatment effect, $\Delta$, is defined as the 
 expected difference in \(Y\) under treatment and control,
-\[\Delta=E(Y\sone-Y\szero).\] Because of randomization, we can use the
-observed data to estimate \(\Delta\)
-\[E[Y | A = 1] - E[Y | A = 0] = \int y f_0(y|\bx)g_0(\bx)dyd\bx - \int y f_1(y|\bx)g_1(\bx)dyd\bx.\]
-We aim to measure the surrogate value of \(\bX\) comparing \(\Delta\) to
-the residual treatment effect that would be observed if the \(\bX\) was
-distributed the same in both groups. The residual treatment effect can
-be estimated as
+\[\Delta=E(Y\sone-Y\szero) = E(Y|A=1)-E(Y|A=0)\]
+where the second equality follows due to randomization. Extending the framework of \cite{parast2016robust} to the longitudinal marker setting, we then define the residual treatment effect, $\Delta_S$ as 
+$$\Delta_S = E_{\bX^{r}}\{\Delta_S(\bX)\} = \int \Delta_S(\bx) dF^{(r)}(\bx), \quad \quad \mbox{where}$$
+$$\Delta_S(\bx) = E(Y\sone-Y\szero | \bX\sone = \bX\szero=\bx)$$
+where $\bX^{r}$ with distribution function $F^{(r)}$ is a reference random variable with respect to which the residual treatment effect is defined.  Without loss of generality, we take $\bX^{r} = \bX \szero,$ and require that $\text{supp}(\bX\szero) \subset \text{supp}(\bX\sone)$ where $\text{supp}(\bX\sone)$ is the support of $\bX\sone$. 
 
+With $\bX\szero$ as the reference, $\Delta_S$ can be interpreted as the hypothetical treatment effect if $\bX$ under treatment were forced to be the same as $\bX$ under control i.e. the leftover treatment effect after accounting for the treatment effect on $\bX$. The proportion of treatment effect explained by the surrogate marker, denoted as $R$, is then defined using a contrast between $\Delta$ and $\Delta_S$:
+\begin{align}
+    R = \frac{\Delta - \Delta_S}{\Delta} = 1 - \frac{\Delta_S}{\Delta}.
+\end{align}
+
+\section{Proposed Estimation Methods}\label{sec:2}
+
+To estimate $R$, we require an estimate of both $\Delta$ and $\Delta_S$. Estimation of $\Delta$ can easily be obtained as $$\hat \Delta = n_1^{-1}\sum_{i=1}^n Y_i I(A_i = 1) - n_0^{-1}\sum_{i=1}^n Y_i I(A_i = 0)$$ where $n_j = \sumin I\{A_i = j\}$ is the number of observations in group $A = j$. To estimate $\Delta_S$, note that \begin{eqnarray*}
+\Delta_S &=& E_{\bX\szero} \left \{ E(Y\sone-Y\szero | \bX\sone = \bX\szero=\bx)\right \} \\
+&=& E_{\bX\szero}\left \{ E(Y\sone| \bX\sone =\bx)\right \} - E_{\bX\szero}\left \{ E(Y\szero |  \bX\szero=\bx) \right \}\\
+&=& E_{\bX\szero}\left \{ E(Y\sone| \bX\sone =\bx)\right \} - E(Y\szero)
+\end{eqnarray*}
+under the assumption that $Y\sone \perp \bX \szero | \bX \sone$ and $Y\szero \perp \bX \sone | \bX \szero$, a condition needed here for identifiability. Of course, $E(Y\szero)$ can be estimated by $n_0^{-1}\sum_{i=1}^n Y_i I(A_i = 0)$ but estimation of $E_{\bX\szero}\left \{ E(Y\sone| \bX\sone =\bx)\right \}$ is more complex and involves scalar-on-function regression in order to obtain the conditional mean function $\mu_1(\bx) = E(Y\sone| \bX\sone =\bx)$. We propose three approaches for estimation of $E(Y\sone| \bX\sone =\bx)$ and thus, estimation of $\Delta_S$. Below, we describe each approach starting with the least flexible of our proposed approaches (linear model) and end with the most flexible of our proposed approaches (kernel estimator). %For the purposes of presentation, we first assume that $\bX_i = \left\{X(t_1), ... X(t_T)\right\}$ is observed on a dense grid common to all individuals; estimation of $\bX_i$ itself when this is not observed is discussed in Section \ref{smoothing} .
+
+\subsection{Linear model for $E(Y\sone| \bX\sone =\bx)$ \label{linearsection}}
+
+We first describe an approach to estimation which relies on specification of a linear model \citep{Goldsmith2011}:
+\begin{align}
+    E(Y\sone| \bX\sone =\bx) = E[Y | \bX, A = 1] = \beta_0 + \sumjp X_i(t_j) \beta(t_j). \label{linear}
+\end{align}
+For ease of presentation and without loss of generality we assume $\beta_0 = 0$. The coefficient function $\beta(\cdot)$ may be approximated by a basis expansion and estimated as $\bbetahat = \{\betahat(t_1), ..., \betahat(t_p)\}$ with
+\begin{align}
+    \bbetahat = n_1\inv\left(n_1\inv\bXtilde\trans\bXtilde + R_\rho\right)\inv\bXtilde\trans Y
+\end{align}
+where $R_\rho$ is a penalty matrix which controls the smoothness of the estimated function, $\bXtilde = p\inv\left\{X_i(t_j) - \Xbar_i(t_j)\right\}_{j = 1, ..., p}$ and $\Xbar(t_j) = n_1\inv \sumin X(t_j)I\{A_i = 1\}$. See, e.g., \citep{crambes2009smoothing, Reiss2017b, Wood2015}.
+It follows that $E(Y\sone| \bX\sone =\bx)$ may be estimated as
+\begin{equation*}
+    \widehat{m}_1\lin(\bx) = \bx\trans\bbetahat.
+\end{equation*}
+
+Though this estimate, $\widehat{m}_1\lin(\bX_i)$, could be used directly, we guard against potential model mis-specification by smoothing over this estimated scalar such that we define $\widehat U\lin_i = \widehat{m}_1\lin(\bX_i)$ and $$\widehat \mu_1\lin (u) = \frac{\sum_{i=1}^n K_h(\widehat U\lin_i - u) Y_i I(A_i = 1)}{\sum_{i=1}^n K_h(\widehat U\lin_i - u)  I(A_i = 1)}$$
+where $K(\cdot)$ is a smooth symmetric density function with finite support, $K_h(\cdot) = K(\cdot/h)/h$ and $h$ is a specified bandwidth such that $h= O(n_1^{-\delta})$ where $\delta \in (1/4,1/2).$ The quantity $\Delta_S$ can then be estimated as \begin{eqnarray*}
+\widehat \Delta_S\lin &=& n_0^{-1} \sum_{i=1}^n \widehat{\mu}_1\lin(\widehat{U}\lin_i) I(A_i = 0) - n_0^{-1}\sum_{i=1}^n Y_i I(A_i = 0) \\
+&=& n_0^{-1} \sum_{i=1}^n \{ \widehat{\mu}_1\lin(\widehat{U}\lin_i) - Y_i\}I(A_i = 0),
+\end{eqnarray*}
+and the proportion of treatment effect explained by $\bX$ is estimated as $R\lin = 1-\widehat \Delta_S\lin / \Delta.$
+
+\subsection{Generalized additive model for $E(Y\sone| \bX\sone =\bx)$ \label{gamsection}}
+Assuming a linear model may be a strong assumption in many instances, and a more general model may be desired. A ready generalization of the linear model is the additive model \citep{mclean2014}:
+\begin{align}
+    E[Y | \bX, A = 1] = \beta_0 + \int g\left\{X_i(t),  t\right\} dt. \label{gam}
+\end{align}
+To estimate $g(\cdot)$ in \eqref{gam}, a bivariate spline basis is used, such that
 \begin{align*}
-\Delta_S &= \int E[Y | A = 1, \bX = \bx]g_0(\bx)d\bx - \int E[Y | A = 0, \bX = \bx]g_0(\bx)d\bx \\
-&= \int y f_1(y|\bx)g_0(\bx)dyd\bx - \int y f_0(y|\bx)g_0(\bx)dyd\bx, \label{residual_effect}.
+    g(x, t) = \sum_{j=1}^{K_x} \sum_{k=1}^{K_b} \theta_{j,k}\phi_j(x)\psi_k(t)
 \end{align*}
+and the resulting generalized additive model (GAM) estimator can be written
+\[
+\widehat{m}_1\gam(\bX) = \betahat_0 + \sum_{j=1}^{K_x} \sum_{k=1}^{K_b} \thetahat_{j,k}\phi_j(x)\psi_k(t). 
+\]
+As in the linear model, we guard against potential model mis-specification by smoothing over this estimated scalar such that we define $\widehat U\gam_i = \widehat{m}_1\gam(\bX_i)$ and $$\widehat \mu_1\gam (u) = \frac{\sum_{i=1}^n K_h(\widehat U\gam_i - u) Y_i I(A_i = 1)}{\sum_{i=1}^n K_h(\widehat U\gam_i - u)  I(A_i = 1)}.$$
+The quantity $\Delta_S$ can then be estimated as \begin{eqnarray*}
+\widehat \Delta_S\gam &=& n_0^{-1} \sum_{i=1}^n \widehat{u}_1\gam(\widehat{U}\gam_i) I(A_i = 0) - n_0^{-1}\sum_{i=1}^n Y_i I(A_i = 0) \\
+&=& n_0^{-1} \sum_{i=1}^n \{ \widehat{u}_1\gam(\widehat{U}\gam_i) - Y_i\}I(A_i = 0),
+\end{eqnarray*}
+The quantity $\Delta_S$ can then be estimated as \begin{eqnarray*}
+\widehat \Delta_S\gam &=& n_0^{-1} \sum_{i=1}^n \widehat{m}_1\gam(\bX) I(A_i = 0) - n_0^{-1}\sum_{i=1}^n Y_i I(A_i = 0) \\
+&=& n_0^{-1} \sum_{i=1}^n \{ \widehat{m}_1\gam(\bX) - Y_i\}I(A_i = 0),
+\end{eqnarray*}
+and R is estimated as $R\gam = 1-\widehat \Delta_S\gam / \Delta.$ Both methods (linear and GAM) are implemented in the \texttt{refund} package in R. 
 
-It is straightforward to estimate $\int E[Y | A = j, \bX = \bx]g_j(\bx)d\bx$ as $n_j\inv\sumin Y_i$, without requiring a model for $E[Y | A = j, \bX = \bx]$.
+\subsection{Kernel-based estimation for $E(Y\sone| \bX\sone =\bx)$ \label{kernelsection}}
+Lastly, we propose a nonparametric approach which places even fewer requirements on the model and does not require there to exist any function such as $g$ that is smooth in $X_i(t)$ and $t$. This approach relies only on specifying a distance between two $\bX$s \citep{Vieu2016}. The model assumes
+ \begin{equation*}
+     E[Y | \bX, A = 1] = m\left(\bX_i\right).
+ \end{equation*}
+The estimator takes the traditional Nadaraya-Watson-type form of other kernel estimators
+\begin{equation*}
+\widehat{m}_1\kern(\bX) = \mhat(\bx) = \frac{\sumin K\{d(\bx, \bX_i)/h\}Y_iI\{A_i = 1\}}{\sumin K\{d(\bx, \bX_i)/h\}I\{A_i = 1\}}\label{knw}
+\end{equation*}
+where $K(\cdot)$ is a kernel function supported and decreasing on $[0,\infty)$, $h > 0$ is a bandwidth, and $d(\cdot, \cdot)$ is a semi-metric, which means that $d$ is symmetric and satisfies the triangle inequality, but $d(x_1, x_2) = 0$ does not necessarily imply that $x_1 = x_2$. In our numerical studies, we use the asymmetric normal kernel i.e., $2\phi(x)$ if $x\geq 0$ and 0 otherwise where $\phi$ represents the density of the normal distribution, and the semi-metric  $d(X_i(t), X_j(t)) = \{(b-a)^{-1} \int_a^b |f(t)|^2 dx \} ^{1/2}$ where $f(t) = X_i(t)-X_j(t)$.  \textcolor{red}{(ADD - what semi-metric and kernel we use (I added in what the defaults are in this package, not sure it is correct), how is h determined? what is the order of h?)}. The quantity $\Delta_S$ can then be estimated as \begin{eqnarray*}
+\widehat \Delta_S\kern &=& n_0^{-1} \sum_{i=1}^n \widehat{m}_1\kern(\bX) I(A_i = 0) - n_0^{-1}\sum_{i=1}^n Y_i I(A_i = 0) \\
+&=& n_0^{-1} \sum_{i=1}^n \{ \widehat{m}_1\kern(\bX) - Y_i\}I(A_i = 0),
+\end{eqnarray*}
+and R is estimated as $R\kern = 1-\widehat \Delta_S\kern / \Delta.$ This estimator is implemented using the \texttt{fda.usc} package.
 
-\section{Simulation studies}\label{sec:2}
+\subsection{Estimating $\bX$ when not observed on a dense grid \label{smoothing}}
+In general, $\bX_i$ will not be observed on a common dense grid for all (or possibly any) individuals. In these cases, $X_i(t)$ itself must be approximated. The function $X_i(t)$ may be approximated as $\bxi_i\trans\bphi(t) = \sum_{k=1}^{K_x}\xi_{ik}\phi_k(t)$ for some functions $\phi_1, ... \phi_{K_x}$, which may be pre-specified spline bases or more typically, may be obtained as functional principal component bases. The $\xi_{ik}$ quantities may then be obtained as the best linear unbiased estimator, as in \citep{Yao2005}. 
+
+\section{Asymptotics and Inference}
+
+In this section, we present that asymptotic properties of our three proposed estimators and methods for variance estimation and confidence interval construction in order to conduct inference on the estimated quantities.
+\begin{theorem}
+Let $\widehat \Delta_S\lin$ and $\Rhat\lin$ be as defined in Section \ref{linearsection}, let $U_{\bbeta}\sone\lin = U_{\bbeta}\lin(\bX\sone) = \bX\sone\trans\bbeta$ and similarly for $U_{\bbeta}\szero\lin$.
+\begin{enumerate}[a.]
+\item{(Consistency) $\widehat \Delta_S\lin \xrightarrow{P} \Delta_S\lin$ and $\widehat R\lin \xrightarrow{P} R\lin$ where $$\Delta_S\lin = E_{U_{\bbeta_0}\szero\lin} \left \{ E(Y\sone-Y\szero | U_{\bbeta_0}\sone\lin = U_{\bbeta_0}\szero\lin=u)\right \}$$ and $R\lin = 1 - \Delta_S\lin / \Delta$. When the linear model (\ref{linear}) holds, $\Delta_S\lin = \Delta_S.$ ;}
+\item{(Asymptotic Normality) $\sqrt{n}(\widehat \Delta_S\lin - \Delta_S\lin)  \xrightarrow{d} N(0, \sigma_{A}^2)$ and $\sqrt{n}(\widehat R\lin - R\lin)  \xrightarrow{d} N(0, \sigma_{B}^2)$ where $\sigma_{A}^2 = \pi_1\inv E_{Y\sone,\bX\sone}\left[\left\{Y - m_1(\bX\trans\bbeta_0)\right\}r(\bX\trans\bbeta_0) + \ba_0\trans\tau\right]^2$ and $\sigma_{B}^2$ are the corresponding asymptotic variances;} {\color{red} should we spell this all out here or leave to appendix?}
+\item{(Variance Estimation) The variance of $\widehat \Delta_S\lin$ can be estimated as XX and the variance of  $\widehat R\lin$ can be estimated as XX.} {\color{red} propose to take this part out}. 
+\end{enumerate}
+\end{theorem}
+
+\begin{theorem}
+Let $\widehat \Delta_S\gam$ and $R\gam$ be as defined in Section \ref{gamsection}. 
+\begin{enumerate}[a.]
+\item{(Consistency) $\widehat \Delta_S\gam \xrightarrow{P} \Delta_S \gam$ and $\widehat R\gam \xrightarrow{P} R \gam$ where $$\Delta_S\gam = E_{U\szero\gam} \left \{ E(Y\sone-Y\szero | U\sone\gam = U\szero\gam=u)\right \}$$
+where $U\sone\gam = \beta_0 + \sum_{j=1}^{K_x} \sum_{k=1}^{K_b} \theta_{j,k}\phi_j(X_i\sone)\psi_k(t)$ and similarly for $U\szero\gam$ and $R\gam = 1 - \Delta_S\gam / \Delta$. When the GAM model (\ref{gam}) holds, $\Delta_S\gam = \Delta_S.$ ;}
+\item{(Asymptotic Normality) $\sqrt{n}(\widehat \Delta_S\gam - \Delta_S \gam)  \xrightarrow{d} N(0, \sigma_{A}^2)$ and $\sqrt{n}(\widehat R\gam - R \gam)  \xrightarrow{d} N(0, \sigma_{B}^2)$ where $\sigma_{A}^2$ and $\sigma_{B}^2$ are the corresponding asymptotic variances;}
+\item{(Variance Estimation) The variance of $\widehat \Delta_S\gam$ can be estimated as XX and the variance of  $\widehat R\gam$ can be estimated as XX.}
+\end{enumerate}
+\end{theorem}
+
+\begin{theorem}
+Let $\widehat \Delta_S\kern$ and $R\kern$ be as defined in Section \ref{kernelsection}. 
+\begin{enumerate}[a.]
+\item{(Consistency) $\widehat \Delta_S\kern \xrightarrow{P} \Delta_S$ and $\widehat R\kern \xrightarrow{P} R$;}
+\item{(Asymptotic Normality) $\sqrt{n}(\widehat \Delta_S\kern - \Delta_S)  \xrightarrow{d} N(0, \sigma_{A}^2)$ and $\sqrt{n}(\widehat R\kern - R)  \xrightarrow{d} N(0, \sigma_{B}^2)$ where $\sigma_{A}^2$ and $\sigma_{B}^2$ are the corresponding asymptotic variances;}
+\item{(Variance Estimation) The variance of $\widehat \Delta_S\kern$ can be estimated as XX and the variance of  $\widehat R\kern$ can be estimated as XX.}
+\end{enumerate}
+\end{theorem}
+
+Proofs for Theorems 1-3 are provided in the Appendix.
+
+
+\section{Simulation studies}\label{sec:3}
+
+We consider the following model 
+\begin{align*}
+    Y_i\sone &= \Delta_S + m(\bX_i\sone) + \epsilon_i\\
+    Y_i\szero &=  m(\bX_i\szero) + \epsilon_i\\
+\end{align*}
+and
+\begin{align*}
+\bX_i\sone = u\sone_{i1} + \frac{50}{333}u\sone_{i2}\bt^2 + \sum_{k=1}^3 \left\{v\sone_{i1k} \sin(\pi \bt k/5) + v\sone_{i2k}\cos(\pi \bt k/5)\right\}\\
+\bX_i\szero(t) = u\szero_{i1} + u\szero_{i2}\bt + \sum_{k=1}^3 \left\{v\szero_{i1k} \sin(\pi \bt k/5) + v\szero_{i2k}\cos(\pi \bt k/5)\right\},
+\end{align*}
+where $\bt = (t_{1}, ..., t_{T})$, $T = 101$, and the observed longitudinal surrogates are 
+\begin{align*}
+    x_{ij} = X_i\sone(t_{ij})I\{A_i = 1\} + X_i\szero(t_{ij})I\{A_i = 0\} + e_{ij}, j = 1, ..., 101.
+\end{align*} 
+
+In the treated group, 
+\begin{align*}
+    u\sone_{i1} &\sim N(0, 25)\\
+    u\sone_{i2} &\sim N(1, 1)\\
+    v\sone_{i11}, v\sone_{i21} &\sim N(0, 4)\\
+    v\sone_{i12}, v\sone_{i22} &\sim N(0, 1)\\
+    v\sone_{i13}, v\sone_{i23} &\sim N(0, 0.25),
+\end{align*} and in the control group, we take similar but smaller distributions to ensure that the support of the control group is contained within the support of the treatment group. Specifically, 
+\begin{align*}
+    u\sone_{i1} &\sim N(0, 4)\\
+    u\sone_{i2} &\sim N(1, 1)\\
+    v\sone_{i11}, v\sone_{i21} &\sim N(0, 1)\\
+    v\sone_{i12}, v\sone_{i22} &\sim N(0, 0.25)\\
+    v\sone_{i13}, v\sone_{i23} &\sim N(0, 0.0625).
+\end{align*}
+We take $\epsilon_i \sim N(0, 1), e_i \sim N(0, 1)$. We consider both linear and nonlinear mean functions. In the linear setting, $m(\bX_i) = T\inv\sum_{j=1}^T X\sone_{ij}\beta_j$. In the nonlinear setting, $m(\bX_i) = T\inv\sum_{j=1}^T X\sone_{ij}^2\beta_j$. In both cases, $\beta_j = \frac{t_j^2}{3}$. We allow the residual treatment effect $\Delta_S$ to vary between 5, 15, and 25. 
+
+We consider the performance of the proposed linear, GAM, and kernel estimators. We compare their performance to four other estimators: unsmoothed versions of the linear (hereafter linear-unsmoothed) and GAM (GAM-unsmoothed) estimators, as well as two naive estimators which use either the mean observed surrogate value or the change from the first to the last surrogate value as the surrogate marker. We furthermore evaluate the role of presmoothing as discussed in Section \ref{smoothing}. To this end, we will evaluate all of the estimators when they operate an $\bX_i$ that is regularly observed on a dense grid of $101$ time points, and we will also examine the performance when they first observe only a few time points, $\bx_i = \{x_i(t_{i1}), ..., x_i(t_{im})\}$, where $t_{ij}$ is randomly sampled from $\bt$. We let $m$ take value of 5, 10, and 25. We further consider sample sizes of $n = 50, 250, 500,$ and 1000 each in the treated and control groups. 
+
+\subsection{Large-sample results for fully observed surrogate} We first present in Tables \ref{tab:oracle-large-n-lin} and \ref{tab:oracle-large-n-nl} results for all estimators when sample size is large, $n = 1000$ in each arm, and operating on the fully observed surrogate. These represent likely best-case settings for the performance of each estimator. Table \ref{tab:oracle-large-n-lin} contains results when the mean function is truly linear, and Table \ref{tab:oracle-large-n-nl} has results for the nonlinear mean function. 
+
+Under the linear mean function (Table \ref{tab:oracle-large-n-lin}), both of the model-based methods perform quite well. They tend to have slightly lower biases and SEs than their smoothed counterparts, but the differences tend to be quite small. The kernel estimator on the other hand has much larger bias and SE for both quantities than the GAM or linear estimators. The naive estimators give very unreliable results, either attributing very little value to the surrogate (using only the mean) or attributing far too much value to it -- more than 100\% of the treatment effect is attributed to the surrogate when the change estimator is used when $\Delta_S = 5$. Performance for all estimators tends to be stable or improve as the signal-to-noise ratio grows, i.e., when $\Delta_S$ and therefore $\Delta$ grow larger compared to the variability in $Y_i$.
+
+When the  mean function is truly nonlinear, Table \ref{tab:oracle-large-n-nl} shows that the proposed GAM and linear estimators again perform quite well. While the unsmoothed estimators performed slightly better than the proposed estimators in the linear setting, here in the nonilnear setting the proposed estimators tend to have lower biases and standard errors than their unsmoothed counterparts. In particular, the linear-unsmoothed estimator has the worst bias for both $\Delta_S$ and $R$, but the smoothing operation recovers excellent performance such that the linear estimator has the third lowest bias for $\Delta_S$ and the lowest for $R$. The kernel estimator again has more bias than the other proposed estimators for $\Delta_S$, but in this case it has quite low bias for $R$. 
+
+For simplicity, we focus our presentation on the nonlinear setting for the remainder of the main text, but full simulation results for all combinations of simulation parameters are available in the supplementary materials. 
+
+
+\begin{table}[t]
+
+\caption{\label{tab:oracle-large-n-lin}All estimators when n = 1000 and surrogate is completely observed without error and mean function is linear.}
+\centering
+\begin{tabular}{lrrrrrrrr}
+\toprule
+Estimator & $\Delta_S$ & $\widehat{\Delta}_S$ & $\widehat{\Delta}_S$ bias & $\widehat{\Delta}_S$ SE & $\widehat{R}$ & R & $\widehat{R}$ bias & $\widehat{R}$ SE\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{Small residual effect}}\\
+\hspace{1em}Linear-unsmoothed & 5 & 5.028 & 0.028 & 0.060 & 0.525 & 0.538 & -0.013 & 0.071\\
+\hspace{1em}GAM-unsmoothed & 5 & 5.032 & 0.032 & 0.061 & 0.524 & 0.538 & -0.013 & 0.071\\
+\hspace{1em}Linear & 5 & 5.040 & 0.040 & 0.063 & 0.523 & 0.538 & -0.014 & 0.071\\
+\hspace{1em}GAM & 5 & 5.045 & 0.045 & 0.063 & 0.523 & 0.538 & -0.015 & 0.071\\
+\hspace{1em}Kernel & 5 & 5.867 & 0.867 & 0.154 & 0.447 & 0.538 & -0.091 & 0.074\\
+\hspace{1em}change & 5 & -0.393 & -5.393 & 0.796 & 1.043 & 0.538 & 0.505 & 0.081\\
+\hspace{1em}mean & 5 & 10.656 & 5.656 & 0.402 & -0.006 & 0.538 & -0.544 & 0.144\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{Medium residual effect}}\\
+\hspace{1em}Linear-unsmoothed & 15 & 15.031 & 0.031 & 0.059 & 0.273 & 0.279 & -0.007 & 0.055\\
+\hspace{1em}GAM-unsmoothed & 15 & 15.035 & 0.035 & 0.062 & 0.272 & 0.279 & -0.007 & 0.055\\
+\hspace{1em}Linear & 15 & 15.044 & 0.044 & 0.061 & 0.272 & 0.279 & -0.007 & 0.055\\
+\hspace{1em}GAM & 15 & 15.048 & 0.048 & 0.063 & 0.272 & 0.279 & -0.008 & 0.055\\
+\hspace{1em}Kernel & 15 & 15.861 & 0.861 & 0.154 & 0.233 & 0.279 & -0.047 & 0.054\\
+\hspace{1em}change & 15 & 9.595 & -5.405 & 0.794 & 0.537 & 0.279 & 0.258 & 0.037\\
+\hspace{1em}mean & 15 & 20.658 & 5.658 & 0.412 & 0.001 & 0.279 & -0.279 & 0.073\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{Large residual effect}}\\
+\hspace{1em}Linear-unsmoothed & 25 & 25.031 & 0.031 & 0.057 & 0.185 & 0.189 & -0.004 & 0.041\\
+\hspace{1em}GAM-unsmoothed & 25 & 25.035 & 0.035 & 0.058 & 0.185 & 0.189 & -0.004 & 0.041\\
+\hspace{1em}Linear & 25 & 25.044 & 0.044 & 0.058 & 0.184 & 0.189 & -0.004 & 0.041\\
+\hspace{1em}GAM & 25 & 25.048 & 0.048 & 0.059 & 0.184 & 0.189 & -0.004 & 0.041\\
+\hspace{1em}Kernel & 25 & 25.863 & 0.863 & 0.154 & 0.158 & 0.189 & -0.031 & 0.040\\
+\hspace{1em}change & 25 & 19.641 & -5.359 & 0.783 & 0.361 & 0.189 & 0.172 & 0.028\\
+\hspace{1em}mean & 25 & 30.661 & 5.661 & 0.414 & 0.002 & 0.189 & -0.187 & 0.049\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+
+\caption{\label{tab:oracle-large-n-nl}All estimators when n = 1000 and surrogate is completely observed without error and mean function is nonlinear.}
+\centering
+\begin{tabular}{lrrrrrrrr}
+\toprule
+Estimator & $\Delta_S$ & $\widehat{\Delta}_S$ & $\widehat{\Delta}_S$ bias & $\widehat{\Delta}_S$ SE & $\widehat{R}$ & R & $\widehat{R}$ bias & $\widehat{R}$ SE\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{Small residual effect}}\\
+\hspace{1em}GAM & 5 & 5.011 & 0.011 & 0.064 & 0.598 & 0.570 & 0.028 & 0.026\\
+\hspace{1em}GAM-unsmoothed & 5 & 4.976 & -0.024 & 0.066 & 0.601 & 0.570 & 0.031 & 0.026\\
+\hspace{1em}Linear & 5 & 5.382 & 0.382 & 0.408 & 0.569 & 0.570 & -0.002 & 0.041\\
+\hspace{1em}change & 5 & 4.455 & -0.545 & 0.283 & 0.643 & 0.570 & 0.073 & 0.023\\
+\hspace{1em}Kernel & 5 & 5.903 & 0.903 & 0.097 & 0.527 & 0.570 & -0.044 & 0.027\\
+\hspace{1em}mean & 5 & 9.041 & 4.041 & 0.272 & 0.275 & 0.570 & -0.295 & 0.045\\
+\hspace{1em}Linear-unsmoothed & 5 & 9.301 & 4.301 & 0.589 & 0.255 & 0.570 & -0.315 & 0.053\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{Medium residual effect}}\\
+\hspace{1em}GAM & 15 & 15.012 & 0.012 & 0.064 & 0.332 & 0.308 & 0.023 & 0.022\\
+\hspace{1em}GAM-unsmoothed & 15 & 14.977 & -0.023 & 0.064 & 0.333 & 0.308 & 0.025 & 0.022\\
+\hspace{1em}Linear & 15 & 15.378 & 0.378 & 0.409 & 0.315 & 0.308 & 0.007 & 0.029\\
+\hspace{1em}change & 15 & 14.445 & -0.555 & 0.283 & 0.357 & 0.308 & 0.049 & 0.019\\
+\hspace{1em}Kernel & 15 & 15.906 & 0.906 & 0.096 & 0.292 & 0.308 & -0.017 & 0.022\\
+\hspace{1em}mean & 15 & 19.052 & 4.052 & 0.261 & 0.152 & 0.308 & -0.157 & 0.028\\
+\hspace{1em}Linear-unsmoothed & 15 & 19.288 & 4.288 & 0.573 & 0.142 & 0.308 & -0.167 & 0.032\\
+\addlinespace[0.3em]
+\multicolumn{9}{l}{\textbf{Large residual effect}}\\
+\hspace{1em}GAM & 25 & 25.016 & 0.016 & 0.063 & 0.230 & 0.210 & 0.020 & 0.018\\
+\hspace{1em}GAM-unsmoothed & 25 & 24.981 & -0.019 & 0.064 & 0.231 & 0.210 & 0.021 & 0.018\\
+\hspace{1em}Linear & 25 & 25.371 & 0.371 & 0.426 & 0.219 & 0.210 & 0.009 & 0.022\\
+\hspace{1em}change & 25 & 24.433 & -0.567 & 0.280 & 0.248 & 0.210 & 0.038 & 0.015\\
+\hspace{1em}Kernel & 25 & 25.903 & 0.903 & 0.094 & 0.202 & 0.210 & -0.008 & 0.017\\
+\hspace{1em}mean & 25 & 29.058 & 4.058 & 0.264 & 0.105 & 0.210 & -0.105 & 0.020\\
+\hspace{1em}Linear-unsmoothed & 25 & 29.302 & 4.302 & 0.588 & 0.098 & 0.210 & -0.112 & 0.023\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Effect of pre-smoothing for longitudinal data}
+The previous section showed the good performance of the proposed estimators in a best-case scenario where the surrogate is fully observed at all possible time points. However, in general individuals may be measured at only a sparse sample of time points. In Table \ref{tab:large-n-all-nl} we present the performance of the estimators when $\Delta_S = 25, n = 1000$ for the nonlinear mean function setting. The table allows us to evaluate the effect of changing the number of observations per individual when sample size is large. 
+
+In general, bias decreases for $\Delta_S$ as the number of observations per individual increases. For example, the bias for $\Delta_S$ in the GAM estimator decreases from $0.423$ when $m = 5$ to $0.038$ when $m = 25$ to $0.015$ when $\bX$ is observed completely and without error. In general, when the number of observations per individual is not small, the estimators that rely on pre-smoothing the longitudinal data perform about as well or better than the estimators operating on the fully observed surrogate. Notably, the kernel estimator has lower bias for both $\Delta_S$ and $R$ when pre-smoothing on $m = 10$ or 25 observations than when using the completely observed $\bX$. Variability in estimates also tends to come down as $m$ increases. 
+
+\begin{table}[t]
+
+\caption{\label{tab:large-n-all-nl}Effect of changing the number of observations per individual when n = 1000, and delta = 25.}
+\centering
+\begin{tabular}{rlrrrr}
+\toprule
+m & Type & $\widehat{\Delta}_S$ bias & $\widehat{\Delta}_S$ SE & $\widehat{R}$ bias & $\widehat{R}$ SE\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{GAM}}\\
+\hspace{1em}5 & pre-smoothed & 0.423 & 1.205 & 0.008 & 0.041\\
+\hspace{1em}10 & pre-smoothed & 0.096 & 0.639 & 0.018 & 0.027\\
+\hspace{1em}25 & pre-smoothed & 0.038 & 0.089 & 0.019 & 0.018\\
+\hspace{1em}101 & oracle & 0.015 & 0.065 & 0.020 & 0.018\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{GAM-unsmoothed}}\\
+\hspace{1em}5 & pre-smoothed & -0.390 & 8.584 & 0.033 & 0.263\\
+\hspace{1em}10 & pre-smoothed & -0.318 & 8.640 & 0.030 & 0.262\\
+\hspace{1em}25 & pre-smoothed & 0.005 & 0.090 & 0.020 & 0.018\\
+\hspace{1em}101 & oracle & -0.020 & 0.066 & 0.021 & 0.018\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{Kernel}}\\
+\hspace{1em}5 & pre-smoothed & 1.095 & 0.359 & -0.012 & 0.021\\
+\hspace{1em}10 & pre-smoothed & 0.587 & 0.177 & 0.003 & 0.019\\
+\hspace{1em}25 & pre-smoothed & 0.553 & 0.094 & 0.003 & 0.018\\
+\hspace{1em}101 & oracle & 0.901 & 0.095 & -0.007 & 0.017\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{Linear}}\\
+\hspace{1em}5 & pre-smoothed & 0.785 & 0.810 & -0.003 & 0.029\\
+\hspace{1em}10 & pre-smoothed & 0.531 & 0.521 & 0.004 & 0.024\\
+\hspace{1em}25 & pre-smoothed & 0.383 & 0.437 & 0.008 & 0.022\\
+\hspace{1em}101 & oracle & 0.372 & 0.425 & 0.009 & 0.022\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{Linear-unsmoothed}}\\
+\hspace{1em}5 & pre-smoothed & 4.384 & 0.820 & -0.113 & 0.028\\
+\hspace{1em}10 & pre-smoothed & 4.335 & 0.628 & -0.112 & 0.024\\
+\hspace{1em}25 & pre-smoothed & 4.309 & 0.593 & -0.112 & 0.023\\
+\hspace{1em}101 & oracle & 4.290 & 0.583 & -0.111 & 0.023\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Effect of sample size} 
+In Table \ref{tab:large-m-all-nl}, we show how increasing sample size tends to decrease bias and SE for both $\Delta_S$ and $R$ when $m = 25$ and $\Delta_S = 25$. The bias for the kernel estimator, for example, decreases from 1.32 to 0.9 when operating on the fully observed $\bX$ and similarly decreases from 1.13 to 0.59 when pre-smoothing sparsely observed longitudinal observations. At the same time, the standard error decreases from 0.67 to 0.10 when $\bX$ is fully observed and from 0.89 to 0.18 when pre-smoothing. 
+
+\begin{table}[t]
+
+\caption{\label{tab:large-m-all-nl}Effect of changing the sample size when m = 25 and delta = 25.}
+\centering
+\begin{tabular}{rlrrrr}
+\toprule
+n & Type & $\widehat{\Delta}_S$ bias & $\widehat{\Delta}_S$ SE & $\widehat{R}$ bias & $\widehat{R}$ SE\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{GAM}}\\
+\hspace{1em}50 & oracle & 0.038 & 0.406 & 0.014 & 0.077\\
+\hspace{1em}250 & oracle & 0.035 & 0.142 & 0.020 & 0.037\\
+\hspace{1em}500 & oracle & 0.021 & 0.092 & 0.019 & 0.025\\
+\hspace{1em}1000 & oracle & 0.012 & 0.065 & 0.021 & 0.018\\
+\hspace{1em}50 & pre-smoothed & 0.083 & 1.859 & 0.013 & 0.096\\
+\hspace{1em}250 & pre-smoothed & 0.205 & 1.636 & 0.015 & 0.064\\
+\hspace{1em}500 & pre-smoothed & 0.135 & 0.914 & 0.016 & 0.039\\
+\hspace{1em}1000 & pre-smoothed & 0.096 & 0.639 & 0.018 & 0.027\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{GAM-unsmoothed}}\\
+\hspace{1em}50 & oracle & 0.090 & 0.317 & 0.012 & 0.080\\
+\hspace{1em}250 & oracle & 0.014 & 0.139 & 0.021 & 0.038\\
+\hspace{1em}500 & oracle & -0.007 & 0.092 & 0.020 & 0.025\\
+\hspace{1em}1000 & oracle & -0.023 & 0.066 & 0.022 & 0.018\\
+\hspace{1em}50 & pre-smoothed & -0.579 & 13.766 & 0.032 & 0.433\\
+\hspace{1em}250 & pre-smoothed & -0.209 & 6.219 & 0.027 & 0.181\\
+\hspace{1em}500 & pre-smoothed & -0.922 & 23.327 & 0.049 & 0.745\\
+\hspace{1em}1000 & pre-smoothed & -0.318 & 8.640 & 0.030 & 0.262\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{Kernel}}\\
+\hspace{1em}50 & oracle & 1.320 & 0.671 & -0.025 & 0.072\\
+\hspace{1em}250 & oracle & 1.065 & 0.229 & -0.011 & 0.036\\
+\hspace{1em}500 & oracle & 0.972 & 0.146 & -0.010 & 0.024\\
+\hspace{1em}1000 & oracle & 0.900 & 0.099 & -0.007 & 0.017\\
+\hspace{1em}50 & pre-smoothed & 1.125 & 0.892 & -0.019 & 0.079\\
+\hspace{1em}250 & pre-smoothed & 0.754 & 0.347 & -0.002 & 0.039\\
+\hspace{1em}500 & pre-smoothed & 0.655 & 0.244 & 0.000 & 0.026\\
+\hspace{1em}1000 & pre-smoothed & 0.587 & 0.177 & 0.003 & 0.019\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{Linear}}\\
+\hspace{1em}50 & oracle & 1.009 & 1.420 & -0.015 & 0.084\\
+\hspace{1em}250 & oracle & 0.679 & 0.751 & 0.001 & 0.044\\
+\hspace{1em}500 & oracle & 0.510 & 0.589 & 0.004 & 0.031\\
+\hspace{1em}1000 & oracle & 0.373 & 0.422 & 0.009 & 0.022\\
+\hspace{1em}50 & pre-smoothed & 1.252 & 2.782 & -0.023 & 0.112\\
+\hspace{1em}250 & pre-smoothed & 0.801 & 0.920 & -0.003 & 0.047\\
+\hspace{1em}500 & pre-smoothed & 0.658 & 0.723 & 0.000 & 0.034\\
+\hspace{1em}1000 & pre-smoothed & 0.531 & 0.521 & 0.004 & 0.024\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{Linear-unsmoothed}}\\
+\hspace{1em}50 & oracle & 4.220 & 2.519 & -0.114 & 0.100\\
+\hspace{1em}250 & oracle & 4.395 & 1.213 & -0.113 & 0.047\\
+\hspace{1em}500 & oracle & 4.354 & 0.814 & -0.114 & 0.033\\
+\hspace{1em}1000 & oracle & 4.262 & 0.575 & -0.110 & 0.023\\
+\hspace{1em}50 & pre-smoothed & 3.872 & 5.687 & -0.103 & 0.182\\
+\hspace{1em}250 & pre-smoothed & 4.444 & 1.292 & -0.115 & 0.049\\
+\hspace{1em}500 & pre-smoothed & 4.415 & 0.882 & -0.116 & 0.035\\
+\hspace{1em}1000 & pre-smoothed & 4.335 & 0.628 & -0.112 & 0.024\\
+\bottomrule
+\end{tabular}
+\end{table}
+
 
 \section{Analysis of longitudinal CD4 count
 surrogacy}\label{analysis-of-longitudinal-cd4-count-surrogacy}
 
+We illustrate the proposed procedures using a dataset from the AIDS Clinical Trial Group (ACTG) Protocol 175 \citep{Hammer96}. This study enrolled 2,467 patients randomized to 4 different treatments: zidovudine only, zidovudine + didanosine, zidovudine + zalcitabine, and didanosine only. We seek to quantify the extent to which CD4 counts measured in the first year after randomization capture the treatment effect on a longer term outcome.
+
+The primary outcome was the difference between CD4 count at 2 years after randomization and the mean of two CD4 count measurements at baseline. Patients who did not have a CD4 count measured within 90 days of 2 years of post-randomization, possibly because they were censored, died, or experienced an AIDS-defining event before that time were not analyzed. We let the surrogate marker be CD4 count measured between two weeks prior to randomization and one year post-randomization. We furthermore focused on comparing the zidovudine-only treatment group to the zidovudine + didanosine. This left a total of 460 individuals in the zidovudine + didanosine group, each having on average 6.4 longitudinal surrogate CD4 observations within the first year after randomizations, and 427 individuals in the zidovudine-only group, each having 6.6 CD4 surrogate observations on average. 
+
+We compared our estimators to two naive approaches which take the surrogate to be other summaries of the CD4 counts in the year after randomization: one uses the mean of the CD4 counts, and the other uses the change from the first measurement of CD4 to the last measurement prior to a year after randomization. For the longitudinal surrogate estimators, $\Deltahat_S\lin, \Deltahat_S\gam$, and $\Deltahat_S\k$, CD4 surrogate data were pre-smoothed using FPCA. Cross validation was used to select the bandwidth for the mean function, while the default method of 10\% of the support was used for the covariance function. AIC was used to select the number of included principal components. Cross validation was used to select the bandwidths for the kernel estimators. 
+
+The mean change in CD4 count at 2 years after randomization was -15.0 for patients randomized to zidovudine + didanosine, while the mean change in the zidovudine-only group was -92.0, making the overall treatment effect estimate 77.0. Using a linear working model, we estimated the residual treatment effect to be $\Deltahat_S\lin = 21.0$ and the proportion of the treatment effect explained by first-year CD4 measurements to be $\Rhat\lin = 0.73$, suggesting these first-year measurements are quite good surrogates for the later outcome. The more flexible additive model suggested that the residual treatment effect was even lower $\Deltahat_s\fgam = 8.8$ and the proportion explained even higher $\Rhat\fgam = 0.89$. The fully nonparametric estimator on the other hand suggested that the degree of surrogacy was much lower, with $\Deltahat_S\k = 42.0$ and $\Rhat\k = 0.46$. The naive methods also gave much lower estimates of longitudinal CD4 surrogacy. The estimated proportion of the treatment effect explained by the mean CD4 count was 0.18, and the proportion explained by the change was 0.55. 
+
+
+
 \section{Discussion}\label{discussion}
+Assessing the surrogacy of a longitudinal marker trajectory is important for identifying promising surrogate markers for future studies; limited methods exist to define and estimate quantities that achieve this goal. We proposed a definition of the proportion of treatment effect explained by a surrogate marker trajectory and three novel flexible methods to estimate this defined quantity. Our methods demonstrate good performance and finite sample properties. An R package available on CRAN, \texttt{Rsurrogate}, implements the three methods proposed here. \textcolor{red}{Layla will need to add these functions before submission.}
 
+Our approach does have some limitations. We initially require the assumption that $\bX_i$ is observed on a common dense grid though this often needs to be estimated in practice. 
 
+Extension of our approach to a time-to-event outcome setting with potential censoring is certainly warranted. In the AIDS study, for example, while CD4 count is itself often used as a primary outcome, it would be of interest to develop these procedures such that the primary outcome of time to death or an aids defining event could be examined. This, however, is not a trivial extension. Besides potential censoring which will likely need to be accommodated, it is likely that individuals may experience the outcome of interest e.g. death early in the study, as the surrogate marker trajectory is being measured. In this case, careful consideration is needed to decide whether and how the surrogate trajectory before death and/or the observed death time will be handled in this framework.
+
+\section*{Acknowledgements}
+Support for this research was provided by National Institutes of Health grant R01HL088589. We thank the AIDS Clinical Trial group for providing the example data. 
+
+\clearpage
 \bibliographystyle{biom}
 \bibliography{bibliography.bib}
 
+\section{Appendix}
+\textcolor{red}{(Add conditions and assumptions needed.)}
+Let $\pi_j = \frac{n_j}{n} > 0, j = 0,1$. $\bX\sone$ and $\bX\szero$ are $d$-dimensional realizations of random functions on a compact interval $\Isc$. Let $F\sone, F\szero$ be the distribution functions for the surrogates in the treated and control groups respectively, and let $f\sone, f\szero$ be the respective densities. We assume the support of $\bX\sone$ contain the support of $\bX\szero$, $\text{supp}(\bX\sone) = \{\bx : f\sone(\bx) > 0\} \supset \text{supp}(\bX\szero) = \{\bx : f\szero(\bx) > 0\}$. Further {\color{red} let $\mu_1(\bx)r(\bx)$ have continuous second derivatives over $\text{supp}(\bX\sone)$} where $r(\bx) = f\szero(\bx)/f\zone(\bx)$. Finally, we take the kernel function $K(x)$ to be a smooth function with finite support, symmetric at zero and $\int K(x)dx) = 1$. Let $K_h(x) = K(s/h)/h$ where $h$ is a smoothing bandwidth assumed to be $O_p(n^{-\delta}), \delta \in (1/4, 1/2)$. 
 
+\subsection{Asymptotics of linear estimator}
+Proof of Theorem 1. We require the following
+\begin{enumerate}
+    \item Both $\bX\sone$ and $\bX\szero$ are bounded, and the random variables $\bbeta_0\trans\bX\sone$ and $\bbeta_0\trans\bX\szero$ have continuous density functions $f\sone_{\bbeta_0}$ and $f\szero_{\bbeta_0}$ with finite support and $\text{supp}(\bX\szero) \subset \text{supp}(\bX\sone) \subset [a,b]$. 
+    \item Let $\mu\sone_{\bbeta}(u) = E(Y\sone | \bbeta\trans\bx = u$ and $r_{\bbeta}(u) = f\szero_{\bbeta}(u) / f\sone_{\bbeta}(u)$. The function $\mu\sone{\bbeta_0}(u)r_{\bbeta_0}(u)$ has a continuous second derivative over $[a,b]$.
+    \item For sufficiently small $\delta > 0$,
+    \begin{align*}
+        |r_{\bbeta_2}(u) - r_{\bbeta_1}(u)| + |\mu_{\bbeta_2}\sone(u)r_{\bbeta_2}(u) - \mu_{\bbeta_1}\sone(u)r_{\bbeta_1}(u)| \leq C_0|\bbeta_2 - \bbeta_1|
+    \end{align*}
+    for $|\bbeta_i - \bbeta_0| < \delta, i = 1,2.$ ({\color{red} does this need to be a norm?}).
+    \item $n\inv R_\rho \rightarrow 0, (nR_\rho\inv) \rightarrow 0$ ({\color{red} check rate of $R_\rho$})
+\end{enumerate}.
+
+We verify that \begin{align*}
+    n_1^{-\frac{1}{2}}(\bbetahat - \bbeta_0) = n_1^{-\frac{1}{2}}\sumin \tau_i + o_p(1)
+\end{align*}
+where $\tau_i = E\subxo(\bXtilde\bXtilde\trans + R_\rho)\inv\bXtilde_i Y_iI\{A_i = 1\}$, $E(\tau_i) = 0,$ and $E(\tau_i^2) < \infty$, so that $|\bbetahat - \bbeta_0| = O_p(\nnhalf).$
+
+The proof then follows from the result in Appendix C of \cite{parast2016robust}, where it is shown that 
+\begin{align*}
+    \nhalf\left(
+    \begin{matrix}
+    \Deltahat_S\lin - \Delta_S\lin\\
+    \Deltahat - \Delta
+    \end{matrix}
+    \right) \rightarrow N(0, \Sigma)
+\end{align*}
+where $\Sigma = \Sigma_1 + \Sigma_0$ and $\Sigma_1 = \pi_1\inv E_{Y\sone,\bX\sone}\left(
+    \begin{matrix}
+    \left\{Y - m_1(\bX\trans\bbeta_0)\right\}r(\bX\trans\bbeta_0) + \ba_0\trans\tau\\
+    Y - E_{Y\sone}(Y)
+    \end{matrix}
+    \right),
+    
+    \Sigma_0 = \pi_0\inv E_{Y\szero,\bX\szero}\left(
+    \begin{matrix}
+    Y - E_{Y\szero}(Y) - m_1(\bX\trans\bbeta_0) + \int m_1(x)F_0\\
+    Y - E_{Y\sone}[Y]
+    \end{matrix}
+    \right)
+    $
+
+\subsection{Asymptotics of kernel-based estimator}
+Proof of Theorem 3. Recall that $\Deltahat_S = \Ehat_{\bX\szero}\left \{ \Ehat(Y\sone| \bX\sone =\bx)\right \} - \Ehat(Y\szero) = \Ehat_{\bX\szero}\left \{ \mhat_1(\bX)\right \} - \Ehat(Y\szero)$. To establish the consistency of $\Deltahat_S$ it is sufficient to show that 
+\begin{align*}
+    \Ehat_{\bX\szero}\left \{ \mhat_1(\bX)\right \} - E_{\bX\szero}\left \{ m_1(\bX)\right \} = o_p(1)
+\end{align*}
+Note that by the strong law of large numbers $\left|\Ehat_{\bX\szero}\left \{ m_1(\bX)\right \} - E_{\bX\szero}\left \{ m_1(\bX)\right \}\right| = o_p(1)$, and recall that $\var\{\mhat(\bX) - m(\bX)\} = O_p\left[\{n\Fhat(h)\}\inv\right] = o_p(1)$. So,
+\begin{align*}
+    &\left|\Ehat_{\bX\szero}\left \{ \mhat_1(\bX)\right \} - E_{\bX\szero}\left \{ m_1(\bX)\right \}\right| \leq\\ &\qquad\left|E_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\}\right| + \left|\Ehat_{\bX\szero}\left \{ m_1(\bX)\right \} - E_{\bX\szero}\left \{ m_1(\bX)\right \}\right| +\\ &\qquad\left|\Ehat_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\} - E_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\}\right|\\
+    &= o_p(1)
+\end{align*}
+because of the uniform consistency of $\mhat(\bX)$ and the strong law of large numbers. {\color{red} this needs to be formalized in terms of moment conditions.}
+
+To establish asymptotic normality, we first write the asymptotic distribution of \begin{align*}
+    &\nhalf\left[\Ehat_{\bX\szero}\left \{ \mhat_1(\bX)\right \} - E_{\bX\szero}\left \{ m_1(\bX)\right \}\right]\\
+     &=\quad \nhalf\left[E_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\}\right] + \nhalf\left[\Ehat_{\bX\szero}\left \{ m_1(\bX)\right \} - E_{\bX\szero}\left \{ m_1(\bX)\right \}\right] +\\ &\quad\nhalf\left[\Ehat_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\} - E_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\}\right]\\
+     &= \quad \nhalf\left[E_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\}\right] + \nhalf\left[\Ehat_{\bX\szero}\left \{ m_1(\bX)\right \} - E_{\bX\szero}\left \{ m_1(\bX)\right \}\right] + o_p(\nnhalf)
+\end{align*}
+because $Z_i = \mhat_1(\bX) - m_1(\bX) - E_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\}$ has $E[Z_i] = 0, \var(Z_i) = o_p(1).$
+
+Taking the first term $\nhalf\left[E_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\}\right]$ first. Let $f_1(\bx) = E_{\bX\sone}[K\{d(\bx, \bX_i)/h\}]$ consider that
+\begin{align*}
+    &\nhalf\left[E_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\}\right] = \nhalf \left[E_{\bX\szero}\left \{ \frac{\sumin K\{d(\bX, \bX_i)/h\}Y_iI\{A_i = 1\}}{\sumin K\{d(\bX, \bX_i)/h\}I\{A_i = 1\}}  - m_1(\bX)\right\}\right]\\
+    &= \nhalf E_{\bX\szero}\left \{m_1(\bX)n_1\inv\sum_{i : A_i = 1}\left[\frac{K\{d(\bX, \bX_i)/h\}}{f_1(\bX)} - 1\right] + n_1\inv\sum_{i : A_i = 1}\frac{K\{d(\bX, \bX_i)/h\}Y_i}{f_1(\bX)} - m_1(\bX)
+    \right\} + O_p(\text{\color{red} fill in rate})
+\end{align*}
+because of the uniform consistency of $\mhat_1(\cdot)$ {\color{red} give this result somewhere}. 
+\begin{align*}
+    &\nhalf\left[E_{\bX\szero}\left \{ \mhat_1(\bX) - m_1(\bX)\right\}\right] = \\
+    &(n_1\pi_1)\mhalf\sum_{i : A_i = 1}E\subxz\left(\frac{m_1(\bX)}{f_1(\bX)}\left\{K\{d(\bX, \bX_i)/h\} - f_1(\bX)\right\} + \left[\frac{Y_iK\{d(\bX, \bX_i)/h\}}{f_1(\bX)} \right] \right) + o_p(1)
+\end{align*}
+Now,
+\begin{align*}
+    &(n_1\pi_1)\mhalf\sum_{i : A_i = 1}E\subxz\left(\frac{m_1(\bX)}{f_1(\bX)}\left\{K\{d(\bX, \bX_i)/h\} - f_1(\bX)\right\}\right)\\
+    &= 
+\end{align*}
+
+%\cite{Vieu2016} show that under suitable regularity conditions
+%\begin{align*}
+%    \sqrt{\frac{n\Fhat(h)M_1^2}{\sigma^2M_1}}\{\mhat(\bx) - m(\bx)\} \rightarrow N(0,1)
+%\end{align*}
+% We need the distribution of $\alpha_n(\Deltahat_s - \Delta_S) = \alpha_n\left(n_0\inv\sum_{i : A_i = 0}\mhat(\bX_i) - \Ybar_0\right)$
 \label{lastpage}
 
 \end{document}
