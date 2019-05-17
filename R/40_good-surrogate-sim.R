@@ -44,7 +44,7 @@ sim_res <- Q(lsa_sim,
              run = sim_parameters$run,
              const = list(tmpdir = tmpdir),
              n_jobs = 100,
-             memory = 1000,
+             memory = 4000,
              fail_on_error = FALSE
 )
 saveRDS(sim_res, 
