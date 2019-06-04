@@ -1,7 +1,7 @@
 ACTG 175 data cleaning
 ================
 dagniel
-Tue Feb 26 12:48:30 2019
+2019-04-23
 
 ``` r
 library(knitr)
@@ -170,14 +170,14 @@ outcome_range <- comparison_data %>%
   filter(t > 365.25*2 - 90, t < 365.25*2 + 90)
 ```
 
-Of the original 1232 patients in these two treatment arms, now we have 887. That... is much better. Let's take the average cd4 count in this range to be their outcome.
+Of the original 1232 patients in these two treatment arms, now we have 887. That... is much better. Let's take the cd4 count that is closest to the 2-year mark as their outcome.
 
 ``` r
 outcome_data <- outcome_range %>%
+  mutate(twoyr_time_diff = abs(t - 365.25*2)) %>%
   group_by(pt_id) %>%
-  summarise(yr2_cd4 = mean(cd4),
-            cd4_diff = mean(cd4 - avg_cd4),
-            n_outcome_cd4 = n())
+  summarise(yr2_cd4 = cd4[which.min(twoyr_time_diff)],
+            cd4_diff = cd4[which.min(twoyr_time_diff)] - unique(avg_cd4))
 ```
 
 Now let's find a baseline cd4 for each individual. Merge it back in and only use cd4 measurements between -14 days and 365 days after start date.

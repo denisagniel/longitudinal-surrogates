@@ -136,13 +136,13 @@ outcome_range <- comparison_data %>%
 outcome_range <- comparison_data %>%
   filter(t > 365.25*2 - 90, t < 365.25*2 + 90)
 
-#' Of the original `r length(unique(comparison_data$pt_id))` patients in these two treatment arms, now we have `r length(unique(outcome_range$pt_id))`. That... is much better. Let's take the average cd4 count in this range to be their outcome.
+#' Of the original `r length(unique(comparison_data$pt_id))` patients in these two treatment arms, now we have `r length(unique(outcome_range$pt_id))`. That... is much better. Let's take the cd4 count that is closest to the 2-year mark as their outcome.
 
 outcome_data <- outcome_range %>%
+  mutate(twoyr_time_diff = abs(t - 365.25*2)) %>%
   group_by(pt_id) %>%
-  summarise(yr2_cd4 = mean(cd4),
-            cd4_diff = mean(cd4 - avg_cd4),
-            n_outcome_cd4 = n())
+  summarise(yr2_cd4 = cd4[which.min(twoyr_time_diff)],
+            cd4_diff = cd4[which.min(twoyr_time_diff)] - unique(avg_cd4))
 
 #' Now let's find a baseline cd4 for each individual.
 

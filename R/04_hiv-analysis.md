@@ -1,7 +1,7 @@
 ACTG 175 analysis
 ================
 dagniel
-Wed Feb 27 10:26:56 2019
+2019-04-23
 
 ``` r
 library(knitr)
@@ -15,6 +15,7 @@ library(zeallot)
 library(longsurr)
 library(refund)
 library(fda.usc)
+library(Rsurrogate)
 select <- dplyr::select
 analysis_data <- read_csv(
           here('data/hiv-analysis-data.csv'))
@@ -31,7 +32,11 @@ y_t <- trt_ds %>%
   select(id, y) %>%
   unique %>%
   pull(y)
+```
 
+There were 460 individuals in the treatment group, and they had on average 6.4456522 longitudinal surrogate observations each.
+
+``` r
 n_ctrl <- ctrl_ds %>%
   summarise(n_ctrl = length(unique(id))) %>%
   pull(n_ctrl)
@@ -39,20 +44,23 @@ y_c <- ctrl_ds %>%
   select(id, y) %>%
   unique %>%
   pull(y)
+```
 
+There were 427 individuals in the control group, and they had on average 6.5948478 longitudinal surrogate observations each.
+
+``` r
 c(trt_xhat_wide, ctrl_xhat_wide, trt_scores, ctrl_scores) %<-%
   presmooth_data(obs_data = analysis_data, 
-                 n_trt = n_trt, n_ctrl = n_ctrl, 
                  options = 
                    list(plot = TRUE, 
                         # methodBwCov = 'GCV',
                         methodBwMu = 'CV',
                         methodSelectK = 'AIC',
                         useBinnedCov = FALSE,
-                        verbose = FALSE))
+                        verbose = TRUE))
 ```
 
-![](04_hiv-analysis_files/figure-markdown_github/unnamed-chunk-2-1.png)![](04_hiv-analysis_files/figure-markdown_github/unnamed-chunk-2-2.png)
+![](04_hiv-analysis_files/figure-markdown_github/unnamed-chunk-4-1.png)![](04_hiv-analysis_files/figure-markdown_github/unnamed-chunk-4-2.png)
 
 ``` r
 smoothed_data <- as_tibble(trt_xhat_wide, rownames = 'id') %>%
@@ -73,7 +81,7 @@ ggplot(analysis_data, aes(x = tt, y = x, group = id)) +
   ggtitle('Raw data by treatment group')
 ```
 
-![](04_hiv-analysis_files/figure-markdown_github/unnamed-chunk-2-3.png)
+![](04_hiv-analysis_files/figure-markdown_github/unnamed-chunk-4-3.png)
 
 ``` r
 ggplot(smoothed_data, aes(x = tt, y = x, group = id)) +
@@ -83,52 +91,84 @@ ggplot(smoothed_data, aes(x = tt, y = x, group = id)) +
   ggtitle('Smoothed data by treatment group')
 ```
 
-![](04_hiv-analysis_files/figure-markdown_github/unnamed-chunk-2-4.png)
+![](04_hiv-analysis_files/figure-markdown_github/unnamed-chunk-4-4.png)
 
 ``` r
-obs_lin_res <-
-  fit_linear_model(y_t = y_t, y_c = y_c, X_t = trt_xhat_wide, X_c = ctrl_xhat_wide) %>%
-  mutate(setting = 'obs_linear')
-obs_lin_res
+overall_treatment_effect <- mean(y_t) - mean(y_c)
 ```
 
-    ##      type         est        se    setting
-    ## 1    mu_t -17.3298188  6.749559 obs_linear
-    ## 2    mu_c -90.6560500  6.154977 obs_linear
-    ## 3   mu_st -76.9896178 12.139841 obs_linear
-    ## 4   mu_sc  86.1905343 38.671165 obs_linear
-    ## 5   delta  73.3262311  9.134565 obs_linear
-    ## 6 delta_s  59.6597989        NA obs_linear
-    ## 7       R   0.1863785        NA obs_linear
+The mean change in the treatment group was -14.976087, while the mean change in the control group was -92.0351288, for an overall treatment effect of 77.0590418.
+
+### Results on smoothed data
 
 ``` r
-obs_fgam_res <-
-  fit_fgam(y_t = y_t, y_c = y_c, X_t = trt_xhat_wide, X_c = ctrl_xhat_wide) %>%
-  mutate(setting = 'obs_fgam')
-obs_fgam_res
+get_delta_s(y_t = y_t,
+            y_c = y_c,
+            X_t = trt_xhat_wide,
+            X_c = ctrl_xhat_wide) %>%
+  gather(method, deltahat_s) %>%
+  mutate(deltahat = overall_treatment_effect,
+         R = 1 - deltahat_s/deltahat)
 ```
 
-    ##      type         est           se  setting
-    ## 1    mu_t -17.3298188 6.749559e+00 obs_fgam
-    ## 2    mu_c -90.6560500 6.154977e+00 obs_fgam
-    ## 3   mu_st -70.9373545 1.586920e+05 obs_fgam
-    ## 4   mu_sc  94.8972088 2.891605e+01 obs_fgam
-    ## 5   delta  73.3262311 9.134565e+00 obs_fgam
-    ## 6 delta_s  53.6075356           NA obs_fgam
-    ## 7       R   0.2689173           NA obs_fgam
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+
+    ## # A tibble: 7 x 4
+    ##   method         deltahat_s deltahat     R
+    ##   <chr>               <dbl>    <dbl> <dbl>
+    ## 1 delta_s_k           42.0      77.1 0.456
+    ## 2 delta_s_fgam        21.0      77.1 0.728
+    ## 3 delta_s_kfgam        8.80     77.1 0.886
+    ## 4 delta_s_lin         18.4      77.1 0.761
+    ## 5 delta_s_klin        21.0      77.1 0.727
+    ## 6 delta_s_mean        56.4      77.1 0.268
+    ## 7 delta_s_change      60.5      77.1 0.215
+
+### Naive approach
 
 ``` r
-obs_kernel_res <-
-  fit_kernel_model(y_t = y_t, y_c = y_c, X_t = trt_xhat_wide, X_c = ctrl_xhat_wide) %>%
-  mutate(setting = 'obs_kernel')
-obs_kernel_res
+naive_ds <- analysis_data %>%
+  group_by(id, y, a) %>%
+  summarise(
+    mean_x = mean(x),
+    change_x = x[tt == max(tt)] - x[tt == min(tt)]
+  )
+  
+mean_res <- R.s.estimate(sone = naive_ds %>% filter(a == 1) %>% pull(mean_x),
+                         szero = naive_ds %>% filter(a == 0) %>% pull(mean_x),
+                         yone = naive_ds %>% filter(a == 1) %>% pull(y),
+                         yzero = naive_ds %>% filter(a == 0) %>% pull(y))
 ```
 
-    ##      type        est       se    setting
-    ## 1    mu_t -17.329819 6.749559 obs_kernel
-    ## 2    mu_c -90.656050 6.154977 obs_kernel
-    ## 3   mu_st -28.882440 6.058854 obs_kernel
-    ## 4   mu_sc -72.580346 6.139299 obs_kernel
-    ## 5   delta  73.326231 9.134565 obs_kernel
-    ## 6 delta_s  11.552621       NA obs_kernel
-    ## 7       R   0.842449       NA obs_kernel
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+
+``` r
+change_res <- R.s.estimate(sone = naive_ds %>% filter(a == 1) %>% pull(change_x),
+                         szero = naive_ds %>% filter(a == 0) %>% pull(change_x),
+                         yone = naive_ds %>% filter(a == 1) %>% pull(y),
+                         yzero = naive_ds %>% filter(a == 0) %>% pull(y))
+mean_res
+```
+
+    ## $delta
+    ## [1] 77.05904
+    ## 
+    ## $delta.s
+    ## [1] 62.88512
+    ## 
+    ## $R.s
+    ## [1] 0.1839358
+
+``` r
+change_res
+```
+
+    ## $delta
+    ## [1] 77.05904
+    ## 
+    ## $delta.s
+    ## [1] 34.88119
+    ## 
+    ## $R.s
+    ## [1] 0.5473447

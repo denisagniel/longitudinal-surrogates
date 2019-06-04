@@ -1,0 +1,63 @@
+---
+title: Longitudinal surrogate marker analysis
+
+author: 
+- name: Denis Agniel
+  affiliation: RAND Corporation
+  email: dagniel@rand.org
+  
+- name: Layla Parast
+  affiliation: RAND Corporation
+  email: parast@rand.org
+
+keywords:
+- longitudinal data; surrogate markers; nonparametric analysis
+
+abstract: |
+  The text of your summary.  Should not exceed 225 words.
+
+bibliography: bibliography.bib
+output: rticles::biometrics_article
+month: "`r format(Sys.Date(), '%b')`"
+year: "`r format(Sys.Date(), '%Y')`"
+referee: true # Papers submitted to Biometrics should ALWAYS be prepared
+              # using the referee option!!!! Turn off only to preview
+              # two column-format
+---
+
+\input{Macro}
+\input{GrandMacros}
+\def\sone{^{(1)}}
+\def\szero{^{(0)}}
+
+# Introduction {#intro}
+
+
+
+# Method {#sec:1}
+
+## Setup and notation
+Let the data for analysis consist of $n$ independent observations of the form $(Y_i, \bX_i, A_i)_{i=1, ..., n}$, $A_i$ represents an indicator for treatment or intervention, $\bX_i = (X_{ij})_{j=1, ... n_i}$ is a longitudinally collected surrogate marker, and $Y_i$ is a primary outcome of interest, all for subject $i$. We assume for simplicity of presentation that patients are randomly assigned at baseline to treatment or control and that $Y$ is fully observed. We further assume that there exists $X(\cdot)$ an underlying surrogate marker trajectory, which we only observe $n_i$ times, possibly at only a few, irregularly spaced times and with error. 
+
+Furthermore, let $Y_i\sone$ and $Y_i\szero$ denote the primary outcome one would observe if, possibly contrary to fact, subject $i$ received treatment and control, respectively. We assume the stable unit treatment value assumption (SUTVA, @rosenbaum1983central). Similarly, let $X_i\sone$ and $X_i\szero$ denote the summary markers under treatment and control. We assume that the joint distribution of $Y_i$ and $\bX_i$ is given by $f_j(y, \bx) = f_j(y|\bx)g_j(\bx)$ in treatment group $j$ where $f_j(y|\bx)$ is the density of $Y$ conditional on $\bX = \bx$ and $g_j(\bx)$ is the density function for $\bX_i$ in group $D = j$. 
+
+## Estimating treatment effects and surrogacy
+We are interested in estimating the proportion of treatment effect on the primary outcome that is explained by the longitudinal surrogate marker. We define the overall treatment effect, $\Delta$, as the expected difference in $Y$ under treatment and control, $$\Delta=E(Y\sone-Y\szero).$$ Because of randomization, we can use the observed data to estimate 
+$\Delta$ $$E[Y | A = 1] - E[Y | A = 0] = \int y f_0(y|\bx)g_0(\bx)dyd\bx - \int y f_1(y|\bx)g_1(\bx)dyd\bx.$$
+We aim to measure the surrogate value of $\bX$ comparing $\Delta$ to the residual treatment effect that would be observed if the $\bX$ was distributed the same in both groups. The residual treatment effect can be estimated as
+
+\begin{align*}
+\Delta_S &= \int E[Y | A = 1, \bX = \bx]g_0(\bx)d\bx - \int E[Y | A = 0, \bX = \bx]g_0(\bx)d\bx \\
+&= \int y f_1(y|\bx)g_0(\bx)dyd\bx - \int y f_0(y|\bx)g_0(\bx)dyd\bx, \label{residual_effect}.
+\end{align*}
+
+
+
+
+# Simulation studies {#sec:2}
+
+# Analysis of longitudinal CD4 count surrogacy
+
+# Discussion
+
+# References

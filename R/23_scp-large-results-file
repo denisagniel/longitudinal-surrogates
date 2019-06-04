@@ -1,0 +1,2 @@
+scp   dma12@transfer.rc.hms.harvard.edu:~/longitudinal-surrogates/results/linear_and_nonlinear_sims.rds ~/rprojects/parast_longitudinal-surrogate-markers/longitudinal-surrogates/results
+
