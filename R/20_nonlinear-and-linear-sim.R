@@ -16,7 +16,7 @@ fs::dir_create(tmpdir)
 # tmp
 
 sim_parameters <- expand.grid(
-  run = 1:3,
+  run = 1:1000,
   n = c(250, 500, 1000),
   n_i = c(5, 10, 25),
   m = c('linear', 'nonlinear'),
@@ -29,7 +29,7 @@ sim_parameters <- expand.grid(
 options(
   clustermq.defaults = list(ptn="short",
                             log_file="Rout/log%a.log",
-                            time_amt = "2:00:00"
+                            time_amt = "12:00:00"
   )
 )
 
@@ -43,7 +43,7 @@ sim_res <- Q(lsa_sim,
              delta = sim_parameters$delta,
              run = sim_parameters$run,
              const = list(tmpdir = tmpdir),
-             n_jobs = 25,
+             n_jobs = 500,
              # memory = 2000,
              fail_on_error = FALSE
 )
