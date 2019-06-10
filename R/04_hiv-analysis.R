@@ -80,7 +80,7 @@ overall_treatment_effect <- mean(y_t) - mean(y_c)
 #'
 #'
 #' ### Results on smoothed data
-get_delta_s(y_t = y_t,
+delta_res <- get_delta_s(y_t = y_t,
             y_c = y_c,
             X_t = trt_xhat_wide,
             X_c = ctrl_xhat_wide) %>%
@@ -88,6 +88,74 @@ get_delta_s(y_t = y_t,
   mutate(deltahat = overall_treatment_effect,
          R = 1 - deltahat_s/deltahat)
 
+id_data <- analysis_data %>%
+  select(id, a, y) %>%
+  distinct
+
+boot_l <- map(1:200, function(b) {
+  boot_data <- id_data %>%
+    sample_frac(replace = TRUE)
+  boot_data <- boot_data %>%
+    arrange(id) %>%
+    mutate(old_id = id,
+           id = 1:nrow(boot_data))
+  boot_obs_data <- boot_data %>%
+    merge(analysis_data, by.x = c('old_id', 'a', 'y'), 
+          by.y = c('id', 'a', 'y')) %>%
+    arrange(id, tt)
+  
+  trt_ds <- boot_obs_data  %>%
+    filter(a == 1)
+  ctrl_ds <- boot_obs_data %>%
+    filter(a == 0)
+  
+  n_trt <- trt_ds %>%
+    summarise(n_trt = length(unique(id))) %>%
+    pull(n_trt)
+  y_t <- trt_ds %>%
+    select(id, y) %>%
+    unique %>%
+    pull(y)
+  
+  n_ctrl <- ctrl_ds %>%
+    summarise(n_ctrl = length(unique(id))) %>%
+    pull(n_ctrl)
+  y_c <- ctrl_ds %>%
+    select(id, y) %>%
+    unique %>%
+    pull(y)
+
+  c(trt_xhat_wide, ctrl_xhat_wide, trt_scores, ctrl_scores) %<-%
+    presmooth_data(obs_data = boot_obs_data, 
+                   options = 
+                     list(plot = FALSE, 
+                          # methodBwCov = 'GCV',
+                          methodBwMu = 'CV',
+                          methodSelectK = 'AIC',
+                          useBinnedCov = FALSE,
+                          verbose = TRUE))
+  
+  overall_treatment_effect <- mean(y_t) - mean(y_c)
+  get_delta_s(y_t = y_t,
+              y_c = y_c,
+              X_t = trt_xhat_wide,
+              X_c = ctrl_xhat_wide) %>%
+    gather(method, deltahat_s) %>%
+    mutate(deltahat = overall_treatment_effect,
+           R = 1 - deltahat_s/deltahat,
+           boot = b)
+})
+boot_res <- boot_l %>%
+  bind_rows %>%
+  group_by(method) %>%
+  summarise(deltahat_s_l = quantile(deltahat_s, 0.025, na.rm = TRUE),
+            deltahat_s_h = quantile(deltahat_s, 0.975, na.rm = TRUE),
+            R_l = quantile(R, 0.025, na.rm = TRUE),
+            R_h = quantile(R, 0.975, na.rm = TRUE),
+            deltahat_s_NA = sum(is.na(deltahat_s)),
+            R_NA = sum(is.na(R)))
+delta_res %>%
+  inner_join(boot_res)
 
 #' ### Naive approach
 

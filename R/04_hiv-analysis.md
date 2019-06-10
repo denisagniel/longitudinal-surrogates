@@ -1,7 +1,7 @@
 ACTG 175 analysis
 ================
 dagniel
-2019-04-23
+2019-06-07
 
 ``` r
 library(knitr)
@@ -102,7 +102,7 @@ The mean change in the treatment group was -14.976087, while the mean change in 
 ### Results on smoothed data
 
 ``` r
-get_delta_s(y_t = y_t,
+delta_res <- get_delta_s(y_t = y_t,
             y_c = y_c,
             X_t = trt_xhat_wide,
             X_c = ctrl_xhat_wide) %>%
@@ -114,16 +114,456 @@ get_delta_s(y_t = y_t,
     ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
     ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
 
-    ## # A tibble: 7 x 4
-    ##   method         deltahat_s deltahat     R
-    ##   <chr>               <dbl>    <dbl> <dbl>
-    ## 1 delta_s_k           42.0      77.1 0.456
-    ## 2 delta_s_fgam        21.0      77.1 0.728
-    ## 3 delta_s_kfgam        8.80     77.1 0.886
-    ## 4 delta_s_lin         18.4      77.1 0.761
-    ## 5 delta_s_klin        21.0      77.1 0.727
-    ## 6 delta_s_mean        56.4      77.1 0.268
-    ## 7 delta_s_change      60.5      77.1 0.215
+``` r
+id_data <- analysis_data %>%
+  select(id, a, y) %>%
+  distinct
+
+boot_l <- map(1:200, function(b) {
+  boot_data <- id_data %>%
+    sample_frac(replace = TRUE)
+  boot_data <- boot_data %>%
+    arrange(id) %>%
+    mutate(old_id = id,
+           id = 1:nrow(boot_data))
+  boot_obs_data <- boot_data %>%
+    merge(analysis_data, by.x = c('old_id', 'a', 'y'), 
+          by.y = c('id', 'a', 'y')) %>%
+    arrange(id, tt)
+  
+  trt_ds <- boot_obs_data  %>%
+    filter(a == 1)
+  ctrl_ds <- boot_obs_data %>%
+    filter(a == 0)
+  
+  n_trt <- trt_ds %>%
+    summarise(n_trt = length(unique(id))) %>%
+    pull(n_trt)
+  y_t <- trt_ds %>%
+    select(id, y) %>%
+    unique %>%
+    pull(y)
+  
+  n_ctrl <- ctrl_ds %>%
+    summarise(n_ctrl = length(unique(id))) %>%
+    pull(n_ctrl)
+  y_c <- ctrl_ds %>%
+    select(id, y) %>%
+    unique %>%
+    pull(y)
+
+  c(trt_xhat_wide, ctrl_xhat_wide, trt_scores, ctrl_scores) %<-%
+    presmooth_data(obs_data = boot_obs_data, 
+                   options = 
+                     list(plot = FALSE, 
+                          # methodBwCov = 'GCV',
+                          methodBwMu = 'CV',
+                          methodSelectK = 'AIC',
+                          useBinnedCov = FALSE,
+                          verbose = TRUE))
+  
+  overall_treatment_effect <- mean(y_t) - mean(y_c)
+  get_delta_s(y_t = y_t,
+              y_c = y_c,
+              X_t = trt_xhat_wide,
+              X_c = ctrl_xhat_wide) %>%
+    gather(method, deltahat_s) %>%
+    mutate(deltahat = overall_treatment_effect,
+           R = 1 - deltahat_s/deltahat,
+           boot = b)
+})
+```
+
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+    ## [1] "Warning: observed supports do not appear equal, may need to consider a transformation or extrapolation"
+
+``` r
+boot_res <- boot_l %>%
+  bind_rows %>%
+  group_by(method) %>%
+  summarise(deltahat_s_l = quantile(deltahat_s, 0.025, na.rm = TRUE),
+            deltahat_s_h = quantile(deltahat_s, 0.975, na.rm = TRUE),
+            R_l = quantile(R, 0.025, na.rm = TRUE),
+            R_h = quantile(R, 0.975, na.rm = TRUE),
+            deltahat_s_NA = sum(is.na(deltahat_s)),
+            R_NA = sum(is.na(R)))
+delta_res %>%
+  inner_join(boot_res)
+```
+
+    ## # A tibble: 10 x 10
+    ##    method deltahat_s deltahat     R deltahat_s_l deltahat_s_h     R_l   R_h
+    ##    <chr>       <dbl>    <dbl> <dbl>        <dbl>        <dbl>   <dbl> <dbl>
+    ##  1 pca2        50.4      77.1 0.345        13.8          67.5  0.173  0.816
+    ##  2 pca3        46.2      77.1 0.400        10.7          60.7  0.228  0.866
+    ##  3 pca4        48.3      77.1 0.373         3.49         60.6  0.212  0.955
+    ##  4 pca10       44.8      77.1 0.418        -1.55         63.0  0.206  1.02 
+    ##  5 fgam        21.6      77.1 0.719       -24.9         306.  -3.03   1.34 
+    ##  6 kfgam       21.7      77.1 0.719       -22.0          70.3 -0.0611 1.29 
+    ##  7 lin         18.9      77.1 0.755       -16.0          67.8  0.231  1.25 
+    ##  8 klin         9.36     77.1 0.878       -26.0          69.8  0.124  1.33 
+    ##  9 mean        56.4      77.1 0.269        38.4          68.8  0.180  0.440
+    ## 10 change      59.8      77.1 0.224        17.7          85.7 -0.0274 0.749
+    ## # … with 2 more variables: deltahat_s_NA <int>, R_NA <int>
 
 ### Naive approach
 
