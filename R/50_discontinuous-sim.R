@@ -16,7 +16,7 @@ fs::dir_create(tmpdir)
 # tmp
 
 sim_parameters <- expand.grid(
-  run = 1:3,
+  run = 1:1000,
   n = c(250, 500, 1000),
   n_i = c(5, 10, 25),
   k = 1,
