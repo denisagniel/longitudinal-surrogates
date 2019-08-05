@@ -16,12 +16,12 @@ fs::dir_create(tmpdir)
 # tmp
 
 sim_parameters <- expand.grid(
-  run = 1:1000,
+  B = c(0, 250),
   n = c(250, 500, 1000),
   n_i = c(5, 10, 25),
   k = 1,
   delta = c(0.1, 0.25, 0.5),
-  B = c(0, 250)
+  run = 1:1000
 ) %>%
   filter(B == 0 | n == 250)
 
