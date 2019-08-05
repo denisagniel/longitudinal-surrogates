@@ -26,9 +26,9 @@ sim_parameters <- expand.grid(
   filter(B == 0 | n == 250)
 
 options(
-  clustermq.defaults = list(ptn="short",
+  clustermq.defaults = list(ptn="medium",
                             log_file="Rout/log%a.log",
-                            time_amt = "12:00:00"
+                            time_amt = "120:00:00"
   )
 )
 
@@ -46,7 +46,7 @@ options(
 # )
 sim_res <- Q_rows(sim_parameters, fun = dc_sim,
                   const = list(tmpdir = tmpdir),
-                  n_jobs = 50,
+                  n_jobs = 500,
                   # memory = 2000,
                   fail_on_error = FALSE)
 saveRDS(sim_res, 
