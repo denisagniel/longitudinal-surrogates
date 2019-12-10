@@ -11,7 +11,7 @@ library(longsurr)
 tmpdir <- '/n/data1/hms/dbmi/zaklab/dma12/longitudinal-surrogates/tmp/'
 fs::dir_create(tmpdir)
 
-# longsurr::lsa_sim(n = 50, n_i = 10, m = 'nonlinear', s_y = 1, s_x = 1, delta = 15, B = 0, run = 12, tmpdir)
+# longsurr:::lsa_sim(n = 250, n_i = 25, m = 'nonlinear', s_y = 1, s_x = 1, delta = 15, B = 0, run = 12, tmpdir)
 
 sim_parameters <- expand.grid(
   run = 1:1000,
@@ -31,7 +31,7 @@ options(
   )
 )
 
-sim_res <- Q(lsa_sim, 
+sim_res <- Q(longsurr:::lsa_sim, 
              n = sim_parameters$n,
              n_i = sim_parameters$n_i,
              m = sim_parameters$m,
