@@ -11,7 +11,6 @@ library(longsurr)
 tmpdir <- '/n/data1/hms/dbmi/zaklab/dma12/longitudinal-surrogates/tmp/'
 fs::dir_create(tmpdir)
 
-
 # longsurr::lsa_sim(n = 50, n_i = 10, m = 'nonlinear', s_y = 1, s_x = 1, delta = 15, B = 0, run = 12, tmpdir)
 
 sim_parameters <- expand.grid(
@@ -22,13 +21,13 @@ sim_parameters <- expand.grid(
   s_y = 1,
   s_x = 1,
   delta = 25,
-  B = 250
+  B = 1000
 )
 
 options(
-  clustermq.defaults = list(ptn="medium",
+  clustermq.defaults = list(ptn="long",
                             log_file="Rout/log%a.log",
-                            time_amt = "120:00:00"
+                            time_amt = "240:00:00"
   )
 )
 
@@ -42,7 +41,7 @@ sim_res <- Q(lsa_sim,
              delta = sim_parameters$delta,
              run = sim_parameters$run,
              const = list(tmpdir = tmpdir),
-             n_jobs = 200,
+             n_jobs = 800,
              memory = 4000,
              fail_on_error = FALSE
 )
