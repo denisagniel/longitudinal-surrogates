@@ -14,20 +14,20 @@ fs::dir_create(tmpdir)
 # longsurr:::lsa_sim(n = 65, n_i = 5, m = 'nonlinear', s_y = 1, s_x = 1, delta = 15, B = 4, run = 2, tmpdir)
 
 sim_parameters <- expand.grid(
-  run = 1:3,
+  run = 1:1000,
   n = 250,
   n_i = c(5, 10, 25),
   m = c('linear', 'nonlinear'),
   s_y = 1,
   s_x = 1,
   delta = 25,
-  B = 10
+  B = 1000
 )
 
 options(
-  clustermq.defaults = list(ptn="short",
+  clustermq.defaults = list(ptn="long",
                             log_file="Rout/log%a.log",
-                            time_amt = "12:00:00"
+                            time_amt = "240:00:00"
   )
 )
 
@@ -41,7 +41,7 @@ sim_res <- Q(longsurr:::lsa_sim,
              delta = sim_parameters$delta,
              run = sim_parameters$run,
              const = list(tmpdir = tmpdir),
-             n_jobs = 3,
+             n_jobs = 500,
              memory = 4000,
              fail_on_error = TRUE
 )
