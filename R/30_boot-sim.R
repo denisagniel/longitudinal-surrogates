@@ -43,7 +43,7 @@ sim_res <- Q(longsurr:::lsa_sim,
              const = list(tmpdir = tmpdir),
              n_jobs = 500,
              memory = 4000,
-             fail_on_error = TRUE
+             fail_on_error = FALSE
 )
 saveRDS(sim_res, 
         here('results/boot-sims.rds'))
