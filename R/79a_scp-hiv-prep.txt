@@ -1,0 +1,4 @@
+scp ~/rprojects/parast_longitudinal-surrogate-markers/longitudinal-surrogates/results/hiv-sim-tools.rds  dma12@transfer.rc.hms.harvard.edu:~/longitudinal-surrogates/results
+/
+
+  scp ~/rprojects/parast_longitudinal-surrogate-markers/longitudinal-surrogates/results/hiv-smoothed-data.rds  dma12@transfer.rc.hms.harvard.edu:~/longitudinal-surrogates/results
