@@ -39,5 +39,5 @@ sim_res <- Q_rows(sim_pars,
                          'refund',
                          'fda.usc',
                          'Rsurrogate'))
-save_rds(sim_res, here('results/hiv-full-sim-results.rds'))  
+write_rds(sim_res, here('results/hiv-full-sim-results.rds'))  
 
