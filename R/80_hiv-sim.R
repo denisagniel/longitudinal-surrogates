@@ -1,3 +1,5 @@
+devtools::install_github('denisagniel/longsurr')
+
 library(tidyverse)
 library(here)
 library(zeallot)
@@ -26,8 +28,9 @@ options(
   )
 )
 # attach(final_list)
-# tst <- longsurr:::hiv_sim_fn(s = 0, mean_fn = 'kernel')
-
+# tstp <- sample_n(sim_pars, 1)
+# tst <- longsurr:::hiv_sim_fn(s = tstp$s, mean_fn = tstp$mean_fn)
+# tst
 sim_res <- Q_rows(sim_pars, 
                   longsurr:::hiv_sim_fn,
                   n_jobs = 300,
