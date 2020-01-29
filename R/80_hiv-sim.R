@@ -24,7 +24,7 @@ sim_pars <- expand.grid(mean_fn = c('kernel', 'gam', 'linear'),
 options(
   clustermq.defaults = list(ptn="short",
                             log_file="Rout/log%a.log",
-                            time_amt = "12:00:00"
+                            time_amt = "3:00:00"
   )
 )
 # attach(final_list)
@@ -33,7 +33,7 @@ options(
 # tst
 sim_res <- Q_rows(sim_pars, 
                   longsurr:::hiv_sim_fn,
-                  n_jobs = 300,
+                  n_jobs = 100,
                   export=final_list,
                   pkgs=c('tidyverse',
                          'here',
