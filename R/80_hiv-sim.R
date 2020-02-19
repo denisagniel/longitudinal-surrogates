@@ -24,7 +24,7 @@ sim_pars <- expand.grid(mean_fn = c('kernel', 'gam', 'linear'),
 options(
   clustermq.defaults = list(ptn="short",
                             log_file="Rout/log%a.log",
-                            time_amt = "3:00:00"
+                            time_amt = "12:00:00"
   )
 )
 # attach(final_list)
