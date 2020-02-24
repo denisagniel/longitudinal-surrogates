@@ -38,21 +38,47 @@ smoothed_data <- as_tibble(trt_xhat_wide, rownames = 'id') %>%
   mutate(tt = as.numeric(tt))
 
 ttl <- read_rds(here('data/time-grids-for-cv.rds'))
-
+# 
+# longsurr:::hiv_cv(s = 0, 
+#                   time_list = sample(ttl, 3),
+#                   all_ids = all_ids,
+#                   analysis_data = analysis_data,
+#                   smoothed_data = smoothed_data,
+#                   trt_xhat_wide = trt_xhat_wide
+#                   )
 
 
 options(
   clustermq.defaults = list(ptn="short",
-                            log_file="Rout/log%a.log",
+                            log_file="Rout/process-%a.log",
                             time_amt = "3:00:00"
   )
 )
+# 
+# sim_res <- Q(longsurr:::hiv_cv,
+#              s = 2,
+#              n_jobs = 2,
+#              const = list(
+#                time_list = sample(ttl, 3),
+#                all_ids = all_ids,
+#                analysis_data = analysis_data,
+#                smoothed_data = smoothed_data,
+#                trt_xhat_wide = trt_xhat_wide
+#              ),
+#              pkgs=c('tidyverse',
+#                     'here',
+#                     'zeallot',
+#                     'longsurr',
+#                     'refund',
+#                     'fda.usc',
+#                     'Rsurrogate'))
 
 
 sim_res <- Q(longsurr:::hiv_cv,
-             time_list = ttl,
+             s = 1:500,
                   n_jobs = 500,
                   const = list(
+                    time_list = ttl,
                     all_ids = all_ids,
                     analysis_data = analysis_data,
                     smoothed_data = smoothed_data,
@@ -65,4 +91,4 @@ sim_res <- Q(longsurr:::hiv_cv,
                          'refund',
                          'fda.usc',
                          'Rsurrogate'))
-write_rds(sim_res, here('results/hiv-cv-results.rds'))  
+write_rds(sim_res, here('results/hiv-full-cv-results.rds'))  
