@@ -57,7 +57,7 @@ sim_res <- Q(longsurr:::hiv_cv,
                     analysis_data = analysis_data,
                     smoothed_data = smoothed_data,
                     trt_xhat_wide = trt_xhat_wide
-                  )
+                  ),
                   pkgs=c('tidyverse',
                          'here',
                          'zeallot',
