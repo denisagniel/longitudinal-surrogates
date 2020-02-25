@@ -90,5 +90,6 @@ sim_res <- Q(longsurr:::hiv_cv,
                          'longsurr',
                          'refund',
                          'fda.usc',
-                         'Rsurrogate'))
+                         'Rsurrogate'),
+             fail_on_error = FALSE)
 write_rds(sim_res, here('results/hiv-full-cv-results.rds'))  
